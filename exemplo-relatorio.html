@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Exemplo de Relatório - Daily Medical Center</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; color: #0f172a; background: #f5f7fb; }
+    .page { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px; box-shadow: 0 4px 24px rgba(0,0,0,.08); border-radius: 8px; }
+    .header { background: linear-gradient(135deg, #2563eb, #10b981); color: #fff; padding: 20px 24px; border-radius: 8px 8px 0 0; margin: -32px -32px 24px; display: flex; align-items: center; gap: 14px; }
+    .header__logo { flex-shrink: 0; width: 44px; height: 44px; background: rgba(255,255,255,.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .header__text { flex: 1; }
+    .header__text h1 { margin: 0; font-size: 22px; }
+    .header__text p { margin: 4px 0 0; font-size: 12px; opacity: .9; }
+    .header__date { margin-left: auto; text-align: right; font-size: 11px; opacity: .9; align-self: flex-end; }
+    h2 { font-size: 16px; color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin: 20px 0 10px; }
+    .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .stat strong { color: #0f172a; }
+    .med { margin-bottom: 14px; padding: 12px; background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 6px; }
+    .med h3 { margin: 0 0 4px; font-size: 14px; }
+    .med .cat { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+    .med p { margin: 2px 0; font-size: 12px; color: #475569; }
+    .list { font-size: 12px; line-height: 1.7; }
+    .list div { padding: 3px 0; border-bottom: 1px dashed #e2e8f0; }
+    .freq { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+    .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    @media print { body { background: #fff; } .page { box-shadow: none; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="header__logo">
+        <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#2563eb"/>
+              <stop offset="100%" stop-color="#10b981"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#lg)"/>
+          <path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="header__text">
+        <h1>Daily Medical Center</h1>
+        <p>Relatório de Saúde do Paciente</p>
+        <p style="margin:4px 0 0;font-size:12px">Paciente: João Silva (joao@email.com)</p>
+      </div>
+      <p class="header__date">Gerado em: 21/11/2026 10:30</p>
+    </div>
+
+    <h2>Período do relatório</h2>
+    <p style="font-size:13px;margin:0">01/11/2026 a 21/11/2026 (Últimos 21 dias)</p>
+
+    <h2>Resumo geral</h2>
+    <div class="stat"><span>Medicamentos cadastrados</span><strong>5</strong></div>
+    <div class="stat"><span>Doses registradas no período</span><strong>42</strong></div>
+    <div class="stat"><span>Sintomas registrados no período</span><strong>8</strong></div>
+    <div class="stat"><span>Dias monitorados no período</span><strong>18</strong></div>
+
+    <h2>Medicamentos cadastrados</h2>
+    <div class="med" style="border-color:#ef4444">
+      <h3>Losartana (Cardíaco)</h3>
+      <div class="cat">Cardíaco</div>
+      <p>Dosagem: 50mg | Quantidade: 1 comprimido por dose</p>
+      <p>Horários: 08:00, 20:00</p>
+      <p>Obs: Tomar com água</p>
+    </div>
+    <div class="med" style="border-color:#8b5cf6">
+      <h3>Sertralina (Ansiedade / Depressão)</h3>
+      <div class="cat">Ansiedade / Depressão</div>
+      <p>Dosagem: 50mg | Quantidade: 1 comprimido por dose</p>
+      <p>Horários: 09:00</p>
+      <p>Obs: Para ansiedade</p>
+    </div>
+    <div class="med" style="border-color:#10b981">
+      <h3>Vitamina D (Vitaminas)</h3>
+      <div class="cat">Vitaminas</div>
+      <p>Dosagem: 2000UI | Quantidade: 2 cápsulas por dose</p>
+      <p>Horários: 08:00</p>
+    </div>
+    <div class="med" style="border-color:#ec4899">
+      <h3>Ibuprofeno (Menstruação / Cólica)</h3>
+      <div class="cat">Menstruação / Cólica</div>
+      <p>Dosagem: 600mg | Quantidade: 1 comprimido por dose</p>
+      <p>Horários: 10:00</p>
+      <p>Obs: Para cólica</p>
+    </div>
+    <div class="med" style="border-color:#06b6d4">
+      <h3>Metformina (Diabetes)</h3>
+      <div class="cat">Diabetes</div>
+      <p>Dosagem: 850mg | Quantidade: 1 comprimido por dose</p>
+      <p>Horários: 08:00, 20:00</p>
+      <p>Obs: Após refeição</p>
+    </div>
+
+    <h2>Médicos responsáveis</h2>
+    <div style="margin-bottom:10px;padding:10px 12px;background:#f8fafc;border-left:4px solid #2563eb;border-radius:6px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:2px">Dr. João Alberto Campos</div>
+      <div style="font-size:11px;color:#64748b">Especialidade: Psiquiatra</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px">Obs: Atende na clínica X</div>
+    </div>
+    <div style="margin-bottom:10px;padding:10px 12px;background:#f8fafc;border-left:4px solid #2563eb;border-radius:6px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:2px">Dr. Lucas Alves Maciel</div>
+      <div style="font-size:11px;color:#64748b">Especialidade: Cardiologista</div>
+    </div>
+    <h2>Doses tomadas no período (excerto)</h2>
+    <div class="list">
+      <div>01/11/2026 08:00 - Losartana</div>
+      <div>01/11/2026 09:00 - Sertralina</div>
+      <div>01/11/2026 08:00 - Vitamina D</div>
+      <div>02/11/2026 08:00 - Losartana (Tomado com água)</div>
+      <div>02/11/2026 20:00 - Losartana</div>
+      <div>03/11/2026 08:00 - Metformina (Após café)</div>
+      <div>... (42 doses no total)</div>
+    </div>
+
+    <h2>Sintomas registrados no período</h2>
+    <div class="list">
+      <div>01/11/2026 10:30 - Dor de cabeça (Moderada) - Após estresse</div>
+      <div>02/11/2026 14:00 - Tontura (Leve)</div>
+      <div>05/11/2026 16:00 - Pressão alta (Forte) - Medida 150/95</div>
+      <div>08/11/2026 09:15 - Dor muscular (Moderada) - Após exercício</div>
+      <div>10/11/2026 22:00 - Insônia (Moderada)</div>
+      <div>12/11/2026 11:30 - Náusea (Leve) - Após medicação</div>
+      <div>15/11/2026 18:45 - Febre (Moderada) - 38.2°C</div>
+      <div>18/11/2026 07:00 - Dor no peito (Leve)</div>
+    </div>
+
+    <h2>Frequência de sintomas</h2>
+    <div class="freq"><span>Dor de cabeça</span><strong>1</strong></div>
+    <div class="freq"><span>Tontura</span><strong>1</strong></div>
+    <div class="freq"><span>Pressão alta</span><strong>1</strong></div>
+    <div class="freq"><span>Dor muscular</span><strong>1</strong></div>
+    <div class="freq"><span>Insônia</span><strong>1</strong></div>
+    <div class="freq"><span>Náusea</span><strong>1</strong></div>
+    <div class="freq"><span>Febre</span><strong>1</strong></div>
+    <div class="freq"><span>Dor no peito</span><strong>1</strong></div>
+
+    <div class="footer">
+      Daily Medical Center - Relatório de saúde | Página 1 de 1
+    </div>
+  </div>
+
+  <div class="no-print" style="text-align:center;margin-top:20px">
+    <button onclick="window.print()" style="padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">
+      🖨️ Salvar como PDF (Ctrl+P → Salvar como PDF)
+    </button>
+  </div>
+</body>
+</html>

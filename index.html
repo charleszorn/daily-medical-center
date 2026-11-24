@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Daily Medical Center - Gerenciamento de medicamentos, sintomas e relatórios de saúde" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Daily Medical Center" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  <link rel="shortcut icon" href="assets/icon.svg" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <title>Daily Medical Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    (function(){try{var m=localStorage.getItem('dmc_theme_v1')||'auto';var dark=m==='dark'||(m==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark)document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme',m);}catch(e){}})();
+    // Version check: force reload if cached version is outdated
+    (function(){
+      var V = '20261123-2';
+      try {
+        var last = localStorage.getItem('dmc_code_version');
+        if (last && last !== V) {
+          // Clear all caches
+          if ('caches' in window) {
+            caches.keys().then(function(keys) {
+              return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+            }).then(function() {
+              localStorage.setItem('dmc_code_version', V);
+              // Unregister all service workers
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  return Promise.all(regs.map(function(r) { return r.unregister(); }));
+                }).then(function() { window.location.reload(); });
+              } else {
+                window.location.reload();
+              }
+            });
+            return;
+          }
+        }
+        localStorage.setItem('dmc_code_version', V);
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+  <!-- Hero / Auth -->
+  <div class="auth-overlay" id="authOverlay">
+    <section class="hero" id="hero">
+      <div class="hero__bg">
+        <!-- Para trocar o hero, substitua assets/hero.jpg (ou hero.png) — 1920x1080, 16:9 -->
+        <img src="assets/hero.jpg" alt="Cardiologista avaliando um paciente em consulta" class="hero__photo"
+             onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='assets/hero.png';}else{this.style.display='none';this.parentElement.classList.add('hero__bg--fallback');}" />
+        <div class="hero__scrim"></div>
+      </div>
+
+      <div class="hero__inner">
+        <header class="hero__head">
+          <div class="hero__brand">
+            <svg viewBox="0 0 40 40" width="42" height="42" aria-hidden="true">
+              <defs>
+                <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#2563eb"/>
+                  <stop offset="100%" stop-color="#10b981"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#g3)"/>
+              <path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+            <div class="hero__brand-text">
+              <h1>Daily Medical Center</h1>
+              <p>sua organização de remédios de um jeito mais prático e informativo</p>
+            </div>
+          </div>
+          <div class="hero__head-actions">
+            <button type="button" class="btn btn--primary" id="heroAccessBtn">Acessar</button>
+            <a href="downloads/daily-medical-center.apk" class="btn btn--ghost hero__apk" download>
+              📲 Baixar APK
+            </a>
+          </div>
+        </header>
+
+        <div class="hero__body">
+          <span class="hero__kicker">Gestão de medicamentos e sintomas</span>
+          <h2 class="hero__title">Seu tratamento organizado, do primeiro comprimido ao relatório médico.</h2>
+          <p class="hero__desc">
+            Cadastre cada medicamento por categoria, defina dosagem e horários, registre sintomas
+            e gere relatórios em PDF para levar à consulta. Tudo em um só lugar — no navegador
+            ou no app Android.
+          </p>
+
+          <div class="hero__features">
+            <div class="hero__feature">
+              <span class="hero__feature-icon">💊</span>
+              <span><strong>Medicamentos por categoria</strong><small>cardíacos, diabetes, vitaminas, colesterol e mais</small></span>
+            </div>
+            <div class="hero__feature">
+              <span class="hero__feature-icon">⏰</span>
+              <span><strong>Dosagem e horários</strong><small>avisos automáticos na hora certa</small></span>
+            </div>
+            <div class="hero__feature">
+              <span class="hero__feature-icon">🩺</span>
+              <span><strong>Sintomas e sinais</strong><small>pressão, glicemia, dor, tontura e febre</small></span>
+            </div>
+            <div class="hero__feature">
+              <span class="hero__feature-icon">📄</span>
+              <span><strong>Relatório em PDF</strong><small>histórico completo para o seu médico</small></span>
+            </div>
+          </div>
+
+          <div class="hero__meds" aria-label="Tipos de tratamento disponíveis">
+            <span class="hero__med"><i style="background:#ef4444"></i>Cardíacos</span>
+            <span class="hero__med"><i style="background:#8b5cf6"></i>Ansiedade e depressão</span>
+            <span class="hero__med"><i style="background:#f97316"></i>Emagrecimento</span>
+            <span class="hero__med"><i style="background:#10b981"></i>Vitaminas</span>
+            <span class="hero__med"><i style="background:#ec4899"></i>Cólica e menstruação</span>
+            <span class="hero__med"><i style="background:#06b6d4"></i>Diabetes</span>
+            <span class="hero__med"><i style="background:#6366f1"></i>Coluna</span>
+            <span class="hero__med"><i style="background:#eab308"></i>Colesterol</span>
+            <span class="hero__med"><i style="background:#a855f7"></i>Tireóide</span>
+            <span class="hero__med"><i style="background:#d946ef"></i>Hormônio</span>
+          </div>
+        </div>
+
+        <div class="hero__modal" id="authModal" hidden>
+          <div class="hero__modal-backdrop" data-close-auth></div>
+          <div class="auth-card hero__modal-card">
+            <button type="button" class="hero__modal-close" data-close-auth aria-label="Fechar">✕</button>
+
+            <!-- Tela de escolha: duas opções lado a lado -->
+            <div id="authChoice">
+              <h3 class="auth-choice__title">Como deseja acessar?</h3>
+              <p class="auth-choice__subtitle">Escolha uma das opções abaixo</p>
+              <div class="auth-choice">
+                <button type="button" class="auth-choice__card" data-open-auth="login">
+                  <span class="auth-choice__icon">🔐</span>
+                  <strong>Entrar</strong>
+                  <small>Já tenho conta. Acesso com e-mail e senha.</small>
+                </button>
+                <button type="button" class="auth-choice__card" data-open-auth="register">
+                  <span class="auth-choice__icon">✨</span>
+                  <strong>Criar conta</strong>
+                  <small>Primeira vez aqui. Cadastro rápido e gratuito.</small>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tela do formulário escolhido -->
+            <div id="authFormView" hidden>
+              <button type="button" class="auth-back" data-back-choice>← Voltar às opções</button>
+              <div class="auth-tabs">
+                <button class="auth-tab active" data-auth="login">Já tenho conta — Entrar</button>
+                <button class="auth-tab" data-auth="register">Criar nova conta</button>
+              </div>
+
+              <form class="form" id="loginForm">
+                <div class="form__group">
+                  <label>E-mail</label>
+                  <input type="email" id="loginEmail" placeholder="seu@email.com" required />
+                </div>
+                <div class="form__group">
+                  <label>Senha</label>
+                  <input type="password" id="loginPassword" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn btn--primary btn--block">Entrar</button>
+                <p class="auth-switch">Não tem conta? <button type="button" class="link-btn" data-auth="register">Cadastre-se</button></p>
+              </form>
+
+              <form class="form" id="registerForm" hidden>
+                <div class="form__group">
+                  <label>Nome</label>
+                  <input type="text" id="regName" placeholder="Seu nome" required />
+                </div>
+                <div class="form__group">
+                  <label>E-mail</label>
+                  <input type="email" id="regEmail" placeholder="seu@email.com" required />
+                </div>
+                <div class="form__group">
+                  <label>Senha</label>
+                  <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" required minlength="6" />
+                </div>
+                <button type="submit" class="btn btn--primary btn--block">Criar conta</button>
+                <p class="auth-switch">Já tem conta? <button type="button" class="link-btn" data-auth="login">Entrar</button></p>
+              </form>
+
+              <p class="auth-hint" id="authHint"></p>
+              <p class="auth-mode" id="authMode"></p>
+              <p class="auth-note">Seus dados ficam salvos neste navegador e sincronizados na sua conta.</p>
+              <a href="downloads/daily-medical-center.apk" class="btn btn--ghost btn--block" download style="margin-top:12px">
+                📲 Baixar APK (Android)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <footer class="site-footer site-footer--hero">
+          <div class="site-footer__brand">
+            <svg viewBox="0 0 40 40" width="22" height="22" aria-hidden="true">
+              <defs>
+                <linearGradient id="gf" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#2563eb"/>
+                  <stop offset="100%" stop-color="#10b981"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#gf)"/>
+              <path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+            <span>Daily Medical Center</span>
+          </div>
+          <div class="site-footer__meta">
+            <span>© 2026 Daily Medical Center. Todos os direitos reservados.</span>
+            <span class="site-footer__sep">•</span>
+            <span>Site criado por <strong>Charles Mágno</strong></span>
+          </div>
+          <a href="mailto:reviewsionismo@proton.me" class="site-footer__mail">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <span>reviewsionismo@proton.me</span>
+          </a>
+          <p class="site-footer__note">Sugestões, dúvidas, parcerias e divulgações.</p>
+          <div class="site-footer__status" id="siteStatus">
+            <span class="site-footer__status-dot"></span>
+            <span class="site-footer__status-text">Verificando status...</span>
+          </div>
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <div class="app">
+    <!-- Backdrop mobile (fecha sidebar ao tocar fora) -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="brand__logo">
+          <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2563eb"/>
+                <stop offset="100%" stop-color="#10b981"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#g)"/>
+            <path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="20" cy="20" r="3" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="brand__text">
+          <span class="brand__name">Daily Medical</span>
+          <span class="brand__sub">Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <button class="nav__item active" data-view="dashboard">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </span>
+          <span class="nav__label">Painel</span>
+        </button>
+        <button class="nav__item" data-view="medications">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 19 12a4.95 4.95 0 1 0-7-7l-8.5 8.5a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+          </span>
+          <span class="nav__label">Medicamentos</span>
+        </button>
+        <button class="nav__item" data-view="schedule">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </span>
+          <span class="nav__label">Horários</span>
+        </button>
+        <button class="nav__item" data-view="symptoms">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </span>
+          <span class="nav__label">Sintomas</span>
+        </button>
+        <button class="nav__item" data-view="history">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+          </span>
+          <span class="nav__label">Histórico</span>
+        </button>
+        <button class="nav__item" data-view="reports">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+          </span>
+          <span class="nav__label">Relatórios</span>
+        </button>
+        <button class="nav__item" data-view="doctors">
+          <span class="nav__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <span class="nav__label">Médicos</span>
+        </button>
+      </nav>
+
+      <div class="sidebar__footer">
+        <button class="btn btn--ghost btn--sm" id="notifBtn" style="width:100%;margin-bottom:8px">
+          🔕 Ativar notificações
+        </button>
+        <button class="btn btn--ghost btn--sm" id="syncBtn" style="width:100%;margin-bottom:8px">
+          🔄 Sincronizar agora
+        </button>
+        <button class="btn btn--ghost btn--sm" id="resetSyncBtn" style="width:100%;margin-bottom:8px;color:var(--rose)">
+          ♻️ Resetar e recarregar da nuvem
+        </button>
+        <button class="btn btn--primary btn--sm" id="installBtn" style="width:100%;margin-bottom:8px;display:none">
+          📲 Instalar aplicativo
+        </button>
+        <a href="downloads/daily-medical-center.apk" class="btn btn--ghost btn--sm" style="width:100%;margin-bottom:8px" download>
+          📥 Baixar APK (Android)
+        </a>
+        <div class="theme-toggle" id="themeToggle">
+          <button data-theme-mode="light" title="Tema claro">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            Claro
+          </button>
+          <button data-theme-mode="dark" title="Tema escuro">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            Escuro
+          </button>
+          <button data-theme-mode="auto" title="Automático (sistema)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Auto
+          </button>
+        </div>
+        <div class="user-card">
+          <div class="user-card__avatar-wrap">
+            <div class="user-card__avatar" id="userAvatar" title="Clique para alterar a foto">
+              <span class="user-card__avatar-initials" id="userAvatarInitials">CM</span>
+            </div>
+            <div class="user-card__avatar-menu" id="userAvatarMenu" hidden>
+              <button type="button" class="user-card__avatar-menu-item" id="userPhotoChange">📷 Alterar foto</button>
+              <button type="button" class="user-card__avatar-menu-item user-card__avatar-menu-item--danger" id="userPhotoRemove">🗑️ Remover foto</button>
+            </div>
+          </div>
+          <input type="file" id="userPhotoInput" accept="image/*" hidden />
+          <div class="user-card__info">
+            <span class="user-card__name" id="userName">Paciente</span>
+            <span class="user-card__status" id="userStatus">Monitoramento ativo</span>
+          </div>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="logoutBtn" style="width:100%;margin-top:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 0-2-2V5a2 2 0 0 0 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Sair
+        </button>
+        <button class="btn btn--danger btn--sm" id="deleteAccountBtn" style="width:100%;margin-top:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 0-2 2H7a2 2 0 0 0-2-2V6M8 6V4a2 2 0 0 0 2-2h4a2 2 0 0 0 2 2v2"/></svg>
+          Excluir conta
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mobile topbar -->
+    <header class="topbar">
+      <button class="topbar__menu" id="menuToggle" aria-label="Abrir menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="topbar__brand">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#g2)"/>
+          <path d="M12 6v12M6 12h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs>
+        </svg>
+        <span>Daily Medical Center</span>
+      </div>
+      <button class="topbar__add" id="quickAdd" aria-label="Adicionar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </header>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Dashboard -->
+      <section class="view active" id="view-dashboard">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Olá, bem-vindo de volta</h1>
+            <p class="view__subtitle">Aqui está o resumo da sua saúde de hoje.</p>
+            <p class="view__slogan">Daily Medical Center, sua saúde merece monitoramento de qualidade.</p>
+          </div>
+          <div class="view__date" id="todayDate"></div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 19 12a4.95 4.95 0 1 0-7-7l-8.5 8.5a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+            </div>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statMeds">0</span>
+              <span class="stat-card__label">Medicamentos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statToday">0</span>
+              <span class="stat-card__label">Doses de hoje</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statSymptoms">0</span>
+              <span class="stat-card__label">Sintomas registrados</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--rose">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="stat-card__body">
+              <span class="stat-card__value" id="statDays">0</span>
+              <span class="stat-card__label">Dias monitorados</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card card--wide">
+            <div class="card__header">
+              <h2 class="card__title">Próximas doses</h2>
+              <button class="btn btn--ghost btn--sm" data-view-go="schedule">Ver todas</button>
+            </div>
+            <div class="dose-list" id="upcomingDoses"></div>
+          </div>
+
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Medicamentos por categoria</h2>
+            </div>
+            <div class="category-chart" id="categoryChart"></div>
+          </div>
+
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Últimos sintomas</h2>
+              <button class="btn btn--ghost btn--sm" data-view-go="symptoms">Registrar</button>
+            </div>
+            <div class="symptom-list" id="recentSymptoms"></div>
+          </div>
+
+          <div class="card card--wide">
+            <div class="card__header">
+              <h2 class="card__title">Ações rápidas</h2>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-action quick-action--blue" data-action="add-med">
+                <span class="quick-action__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 19 12a4.95 4.95 0 1 0-7-7l-8.5 8.5a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                </span>
+                <span>Cadastrar medicamento</span>
+              </button>
+              <button class="quick-action quick-action--rose" data-action="add-symptom">
+                <span class="quick-action__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </span>
+                <span>Registrar sintoma</span>
+              </button>
+              <button class="quick-action quick-action--green" data-action="add-dose">
+                <span class="quick-action__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                </span>
+                <span>Marcar dose tomada</span>
+              </button>
+              <button class="quick-action quick-action--amber" data-view-go="reports">
+                <span class="quick-action__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+                </span>
+                <span>Gerar relatório PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Medications -->
+      <section class="view" id="view-medications">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Medicamentos</h1>
+            <p class="view__subtitle">Cadastre e organize seus medicamentos por categoria.</p>
+          </div>
+          <button class="btn btn--primary" id="addMedBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo medicamento
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="medSearch" placeholder="Buscar medicamento..." />
+          </div>
+          <div class="filter-chips" id="categoryFilters"></div>
+        </div>
+
+        <div class="med-grid" id="medGrid"></div>
+        <div class="empty-state" id="medEmpty" hidden>
+          <div class="empty-state__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 19 12a4.95 4.95 0 1 0-7-7l-8.5 8.5a4.95 4.95 0 0 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+          </div>
+          <h3>Nenhum medicamento cadastrado</h3>
+          <p>Clique em "Novo medicamento" para começar a organizar seus remédios.</p>
+        </div>
+      </section>
+
+      <!-- Schedule -->
+      <section class="view" id="view-schedule">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Horários de medicação</h1>
+            <p class="view__subtitle">Acompanhe as doses do dia e marque como tomadas.</p>
+          </div>
+          <div class="view__date" id="scheduleDate"></div>
+        <button class="btn btn--primary btn--sm" onclick="markAllPendingDoses()" style="margin-left:8px">Marcar todas as pendentes</button>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+        <div class="empty-state" id="scheduleEmpty" hidden>
+          <div class="empty-state__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <h3>Sem doses agendadas</h3>
+          <p>Cadastre medicamentos com horários para ver sua agenda diária.</p>
+        </div>
+      </section>
+
+      <!-- Symptoms -->
+      <section class="view" id="view-symptoms">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Sintomas e estado</h1>
+            <p class="view__subtitle">Registre como você está se sentindo hoje.</p>
+          </div>
+          <button class="btn btn--primary" id="addSymptomBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Registrar sintoma
+          </button>
+        </div>
+
+        <div class="symptom-grid" id="symptomGrid"></div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card__header">
+            <h2 class="card__title">Histórico recente</h2>
+          </div>
+          <div class="symptom-history" id="symptomHistory"></div>
+        </div>
+      </section>
+
+      <!-- History -->
+      <section class="view" id="view-history">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Histórico de monitoramento</h1>
+            <p class="view__subtitle">Veja sua evolução ao longo dos dias.</p>
+          </div>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <div class="card" style="margin-top:24px">
+          <div class="card__header">
+            <h2 class="card__title">Registros do dia selecionado</h2>
+          </div>
+          <div id="dayDetail"></div>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section class="view" id="view-reports">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Relatórios de saúde</h1>
+            <p class="view__subtitle">Gere relatórios em PDF do seu monitoramento.</p>
+          </div>
+        </div>
+
+        <div class="reports-layout">
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Gerar relatório</h2>
+            </div>
+            <div class="form">
+              <div class="form__group">
+                <label>Período</label>
+                <select id="reportPeriod">
+                  <option value="7">Últimos 7 dias</option>
+                  <option value="14">Últimos 14 dias</option>
+                  <option value="30">Últimos 30 dias</option>
+                  <option value="all">Todo o histórico</option>
+                </select>
+              </div>
+              <div class="form__group">
+                <label>Incluir</label>
+                <div class="checkbox-list">
+                  <label class="checkbox"><input type="checkbox" id="incMeds" checked /> Medicamentos cadastrados</label>
+                  <label class="checkbox"><input type="checkbox" id="incDoses" checked /> Doses tomadas</label>
+                  <label class="checkbox"><input type="checkbox" id="incSymptoms" checked /> Sintomas registrados</label>
+                  <label class="checkbox"><input type="checkbox" id="incStats" checked /> Estatísticas gerais</label>
+                  <label class="checkbox"><input type="checkbox" id="incDoctors" checked /> Médicos responsáveis</label>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--block" id="generateReportBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+                Gerar relatório PDF
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Pré-visualização</h2>
+            </div>
+            <div class="report-preview" id="reportPreview">
+              <p class="muted">Configure as opções e clique em "Gerar relatório PDF" para visualizar.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card__header">
+            <h2 class="card__title">Relatórios gerados</h2>
+          </div>
+          <div class="report-list" id="reportList"></div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card__header">
+            <h2 class="card__title">Exemplo de relatório</h2>
+          </div>
+          <p class="muted" style="margin-bottom:12px">Veja como fica um relatório gerado com dados fictícios.</p>
+          <a href="exemplo-relatorio.html" target="_blank" class="btn btn--ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+            Abrir exemplo
+          </a>
+        </div>
+      </section>
+
+      <!-- Doctors -->
+      <section class="view" id="view-doctors">
+        <div class="view__header">
+          <div>
+            <h1 class="view__title">Meus médicos</h1>
+            <p class="view__subtitle">Cadastre os profissionais que acompanham seu tratamento.</p>
+          </div>
+          <button class="btn btn--primary" data-action="add-doctor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo médico
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card__header">
+            <h2 class="card__title">Médicos cadastrados</h2>
+          </div>
+          <div class="doctors-list" id="doctorsList">
+            <p class="muted">Nenhum médico cadastrado ainda.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer site-footer--app">
+      <div class="site-footer__brand">
+        <svg viewBox="0 0 40 40" width="22" height="22" aria-hidden="true">
+          <defs>
+            <linearGradient id="gf2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#2563eb"/>
+              <stop offset="100%" stop-color="#10b981"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="36" height="36" rx="10" fill="url(#gf2)"/>
+          <path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+        <span>Daily Medical Center</span>
+      </div>
+      <div class="site-footer__meta">
+        <span>© 2026 Daily Medical Center. Todos os direitos reservados.</span>
+        <span class="site-footer__sep">•</span>
+        <span>Site criado por <strong>Charles Mágno</strong></span>
+      </div>
+      <a href="mailto:reviewsionismo@proton.me" class="site-footer__mail">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <span>reviewsionismo@proton.me</span>
+      </a>
+      <p class="site-footer__note">Sugestões, dúvidas, parcerias e divulgações.</p>
+      <div class="site-footer__status" id="siteStatusApp">
+        <span class="site-footer__status-dot"></span>
+        <span class="site-footer__status-text">Verificando status...</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal: Medication -->
+  <div class="modal" id="medModal" aria-hidden="true">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2 id="medModalTitle">Novo medicamento</h2>
+        <button class="modal__close" data-close="medModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form class="form" id="medForm">
+        <input type="hidden" id="medId" />
+        <div class="form__group">
+          <label for="medName">Nome do medicamento</label>
+          <input type="text" id="medName" placeholder="Ex: Losartana" required />
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="medCategory">Categoria / Tratamento</label>
+            <select id="medCategory" required>
+              <option value="cardiac">Cardíaco</option>
+              <option value="anxiety">Ansiedade / Depressão</option>
+              <option value="weight">Emagrecimento</option>
+              <option value="vitamin">Vitaminas</option>
+              <option value="menstrual">Menstruação / Cólica</option>
+              <option value="diabetes">Diabetes</option>
+              <option value="spine">Coluna</option>
+              <option value="cholesterol">Colesterol</option>
+              <option value="thyroid">Tireóide</option>
+              <option value="hormone">Hormônio</option>
+              <option value="other">Outros</option>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="medDosage">Dosagem</label>
+            <input type="text" id="medDosage" placeholder="Ex: 50mg" />
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="medAmount">Quantidade por dose</label>
+            <input type="text" id="medAmount" value="1" placeholder="Ex: 1, 1/2, 0.5" />
+          </div>
+          <div class="form__group">
+            <label for="medUnit">Unidade</label>
+            <select id="medUnit">
+              <option value="comprimido">Comprimido(s)</option>
+              <option value="cápsula">Cápsula(s)</option>
+              <option value="injetável">Injetável (ampola/seringa)</option>
+              <option value="ml">ml</option>
+              <option value="gota">Gota(s)</option>
+              <option value="dose">Dose(s)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="medTimes">Horários (separados por vírgula)</label>
+          <input type="text" id="medTimes" placeholder="Ex: 08:00, 14:00, 20:00" />
+          <small class="form__hint">Use o formato 24h, ex: 08:00</small>
+        </div>
+        <div class="form__group">
+          <label for="medFrequency">Frequência de uso</label>
+          <select id="medFrequency">
+            <option value="daily">Diário (todos os dias)</option>
+            <option value="weekly">Semanal (dias específicos)</option>
+            <option value="biweekly">Quinzenal (a cada 14 dias)</option>
+            <option value="monthly">Mensal (dia do mês)</option>
+          </select>
+        </div>
+        <div class="form__group" id="medFreqWeekly" hidden>
+          <label>Dias da semana</label>
+          <div class="weekday-picker">
+            <label><input type="checkbox" value="0" /> Dom</label>
+            <label><input type="checkbox" value="1" /> Seg</label>
+            <label><input type="checkbox" value="2" /> Ter</label>
+            <label><input type="checkbox" value="3" /> Qua</label>
+            <label><input type="checkbox" value="4" /> Qui</label>
+            <label><input type="checkbox" value="5" /> Sex</label>
+            <label><input type="checkbox" value="6" /> Sáb</label>
+          </div>
+        </div>
+        <div class="form__group" id="medFreqBiweekly" hidden>
+          <label for="medStartDate">Data da primeira dose</label>
+          <input type="date" id="medStartDate" />
+          <small class="form__hint">A dose se repete a cada 14 dias a partir desta data</small>
+        </div>
+        <div class="form__group" id="medFreqMonthly" hidden>
+          <label for="medDayOfMonth">Dia do mês</label>
+          <input type="number" id="medDayOfMonth" min="1" max="31" placeholder="Ex: 15" />
+          <small class="form__hint">Dia do mês em que a dose é tomada (1 a 31)</small>
+        </div>
+        <div class="form__group">
+          <label for="medUsageType">Tipo de uso</label>
+          <select id="medUsageType">
+            <option value="continuous">Uso contínuo (sem data de fim)</option>
+            <option value="period">Uso por período (início e fim)</option>
+            <option value="seasonal">Uso sazonal (meses específicos)</option>
+            <option value="asNeeded">Uso conforme necessário (sem horário fixo)</option>
+          </select>
+        </div>
+        <div class="form__group" id="medUsagePeriod" hidden>
+          <div class="form__row">
+            <div class="form__group">
+              <label for="medPeriodStart">Início</label>
+              <input type="date" id="medPeriodStart" />
+            </div>
+            <div class="form__group">
+              <label for="medPeriodEnd">Fim</label>
+              <input type="date" id="medPeriodEnd" />
+            </div>
+          </div>
+          <small class="form__hint">O medicamento é usado apenas entre essas datas</small>
+        </div>
+        <div class="form__group" id="medUsageSeasonal" hidden>
+          <label>Meses de uso</label>
+          <div class="weekday-picker" id="monthPicker">
+            <label><input type="checkbox" value="1" /> Jan</label>
+            <label><input type="checkbox" value="2" /> Fev</label>
+            <label><input type="checkbox" value="3" /> Mar</label>
+            <label><input type="checkbox" value="4" /> Abr</label>
+            <label><input type="checkbox" value="5" /> Mai</label>
+            <label><input type="checkbox" value="6" /> Jun</label>
+            <label><input type="checkbox" value="7" /> Jul</label>
+            <label><input type="checkbox" value="8" /> Ago</label>
+            <label><input type="checkbox" value="9" /> Set</label>
+            <label><input type="checkbox" value="10" /> Out</label>
+            <label><input type="checkbox" value="11" /> Nov</label>
+            <label><input type="checkbox" value="12" /> Dez</label>
+          </div>
+          <small class="form__hint">Meses em que o medicamento é utilizado</small>
+        </div>
+        <div class="form__group" id="medUsageAsNeeded" hidden>
+          <small class="form__hint">Medicamento de uso conforme necessário: não aparece na agenda diária, mas pode ser registrado manualmente.</small>
+        </div>
+        <div class="form__group">
+          <label for="medNotes">Observações (opcional)</label>
+          <textarea id="medNotes" rows="3" placeholder="Ex: tomar com alimento, evitar álcool..."></textarea>
+        </div>
+        <div class="form__group" id="medFormActions">
+          <label for="medColor">Cor de identificação</label>
+          <div class="color-picker" id="colorPicker">
+            <button type="button" class="color-swatch" data-color="#2563eb" style="background:#2563eb"></button>
+            <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981"></button>
+            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
+            <button type="button" class="color-swatch" data-color="#ef4444" style="background:#ef4444"></button>
+            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899"></button>
+            <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+            <button type="button" class="color-swatch" data-color="#64748b" style="background:#64748b"></button>
+          </div>
+          <input type="hidden" id="medColor" value="#2563eb" />
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="medModal">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Salvar medicamento</button>
+        </div>
+      </form>
+
+      <!-- Confirmação de cadastro -->
+      <div id="medConfirmView" class="med-confirm" hidden>
+        <h3 class="med-confirm__title">Confirmar medicamento</h3>
+        <p class="med-confirm__subtitle">Revise os dados antes de salvar:</p>
+        <div class="med-confirm__details" id="medConfirmDetails"></div>
+        <div class="med-confirm__actions">
+          <button type="button" class="btn btn--ghost" id="medConfirmCancel">Voltar e editar</button>
+          <button type="button" class="btn btn--primary" id="medConfirmOk">Confirmar e salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Symptom -->
+  <div class="modal" id="symptomModal" aria-hidden="true">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <h2>Registrar sintoma / estado</h2>
+        <button class="modal__close" data-close="symptomModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form class="form" id="symptomForm">
+        <div class="form__group">
+          <label for="symptomType">Sintoma / Estado</label>
+          <select id="symptomType" required>
+            <option value="headache">Dor de cabeça</option>
+            <option value="dizziness">Tontura</option>
+            <option value="swelling">Inchaço</option>
+            <option value="fever">Febre</option>
+            <option value="fainting">Desmaio</option>
+            <option value="nosebleed">Sangramento nasal</option>
+            <option value="high_bp">Pressão alta</option>
+            <option value="low_bp">Pressão baixa</option>
+            <option value="high_glucose">Glicemia alta</option>
+            <option value="low_glucose">Glicemia baixa</option>
+            <option value="nausea">Náusea</option>
+            <option value="vomiting">Enjoo / Vômito</option>
+            <option value="chest_pain">Dor no peito</option>
+            <option value="muscle_pain">Dor muscular</option>
+            <option value="diarrhea">Diarreia</option>
+            <option value="apnea">Apneia do sono</option>
+            <option value="palpitations">Palpitações</option>
+            <option value="fatigue">Cansaço / Fadiga</option>
+            <option value="insomnia">Insônia</option>
+            <option value="anxiety">Ansiedade</option>
+            <option value="sadness">Tristeza / Depressão</option>
+            <option value="cramps">Cólica</option>
+            <option value="other">Outro</option>
+          </select>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="symptomSeverity">Intensidade</label>
+            <select id="symptomSeverity">
+              <option value="mild">Leve</option>
+              <option value="moderate">Moderada</option>
+              <option value="severe">Forte</option>
+            </select>
+          </div>
+          <div class="form__group">
+            <label for="symptomDate">Data</label>
+            <input type="date" id="symptomDate" required />
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="symptomTime">Horário</label>
+          <input type="text" id="symptomTime" required placeholder="00:00 ou 00h00" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}[:hH][0-9]{2}" />
+        </div>
+        <div class="form__group">
+          <label for="symptomNotes">Observações (opcional)</label>
+          <textarea id="symptomNotes" rows="3" placeholder="Descreva o que sentiu..."></textarea>
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="symptomModal">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Salvar registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Dose taken -->
+  <div class="modal" id="doseModal" aria-hidden="true">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content modal__content--sm">
+      <div class="modal__header">
+        <h2>Marcar dose tomada</h2>
+        <button class="modal__close" data-close="doseModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form class="form" id="doseForm">
+        <div class="form__group">
+          <label for="doseMed">Medicamento</label>
+          <select id="doseMed" required></select>
+        </div>
+        <div class="form__group">
+          <label for="doseTime">Horário</label>
+          <input type="text" id="doseTime" required placeholder="00:00 ou 00h00" inputmode="numeric" maxlength="5" pattern="[0-9]{1,2}[:hH][0-9]{2}" />
+        </div>
+        <div class="form__group">
+          <label for="doseDate">Data</label>
+          <input type="date" id="doseDate" required />
+        </div>
+        <div class="form__group">
+          <label for="doseNotes">Observações (opcional)</label>
+          <textarea id="doseNotes" rows="2" placeholder="Ex: tomado com água, após refeição..."></textarea>
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="doseModal">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Médico -->
+  <div class="modal" id="doctorModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="doctorModal"></div>
+    <div class="modal__content modal__content--sm">
+      <div class="modal__header">
+        <h2 id="doctorModalTitle">Novo médico</h2>
+        <button class="modal__close" data-close="doctorModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form class="form" id="doctorForm">
+        <input type="hidden" id="doctorId" />
+        <div class="form__group">
+          <label for="doctorName">Nome do médico</label>
+          <input type="text" id="doctorName" placeholder="Ex: João Alberto Campos" required />
+        </div>
+        <div class="form__group">
+          <label for="doctorSpecialty">Especialidade / Profissão</label>
+          <input type="text" id="doctorSpecialty" placeholder="Ex: Psiquiatra, Cardiologista" required />
+        </div>
+        <div class="form__group">
+          <label for="doctorNotes">Observações (opcional)</label>
+          <textarea id="doctorNotes" rows="2" placeholder="Ex: atende na clínica X, telefone..."></textarea>
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="doctorModal">Cancelar</button>
+          <button type="submit" class="btn btn--primary">Salvar médico</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Recorte de foto de perfil -->
+  <div class="modal" id="cropModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="cropModal"></div>
+    <div class="modal__content modal__content--sm" style="max-width:420px">
+      <div class="modal__header">
+        <h2>Posicionar foto</h2>
+        <button class="modal__close" data-close="cropModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="crop-body">
+        <div class="crop-viewport" id="cropViewport">
+          <img id="cropImage" alt="Pré-visualização" draggable="false" />
+          <div class="crop-overlay"></div>
+        </div>
+        <div class="crop-controls">
+          <label>Zoom</label>
+          <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" />
+        </div>
+        <div class="crop-preview">
+          <span class="crop-preview__label">Prévia:</span>
+          <div class="crop-preview__avatar" id="cropPreviewAvatar">
+            <span>?</span>
+          </div>
+        </div>
+        <p class="crop-hint">Arraste a imagem para posicionar. Use o zoom para ajustar.</p>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="cropModal">Cancelar</button>
+          <button type="button" class="btn btn--primary" id="cropSaveBtn">Salvar foto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmação de exclusão de conta -->
+  <div class="modal" id="deleteAccountModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close="deleteAccountModal"></div>
+    <div class="modal__content modal__content--sm">
+      <div class="modal__header">
+        <h2>Excluir conta</h2>
+        <button class="modal__close" data-close="deleteAccountModal" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="form" style="padding:20px 24px 24px">
+        <p style="font-size:14px;color:var(--text-soft);margin-bottom:12px">
+          Esta ação é <strong>irreversível</strong>. Todos os seus medicamentos, doses, sintomas e dados serão apagados permanentemente.
+        </p>
+        <div class="form__group">
+          <label for="deleteConfirmInput">Digite <strong>EXCLUIR</strong> para confirmar</label>
+          <input type="text" id="deleteConfirmInput" placeholder="EXCLUIR" autocomplete="off" />
+        </div>
+        <div class="form__actions">
+          <button type="button" class="btn btn--ghost" data-close="deleteAccountModal">Cancelar</button>
+          <button type="button" class="btn btn--danger" id="deleteConfirmBtn" disabled>Excluir conta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Supabase (opcional, para nuvem) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/medications.js"></script>
+  <script src="js/doctors.js"></script>
+  <script src="js/image-crop.js"></script>
+  <script src="js/symptoms.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script>
+    // Status badge: ping /api/keepalive e atualiza os indicadores do rodapé
+    (function () {
+      function setStatus(els, state, label) {
+        els.forEach(el => {
+          if (!el) return;
+          el.classList.remove('site-footer__status--online', 'site-footer__status--offline');
+          if (state === 'online') el.classList.add('site-footer__status--online');
+          else if (state === 'offline') el.classList.add('site-footer__status--offline');
+          const t = el.querySelector('.site-footer__status-text');
+          if (t) t.textContent = label;
+        });
+      }
+      async function check() {
+        const els = [document.getElementById('siteStatus'), document.getElementById('siteStatusApp')];
+        setStatus(els, 'checking', 'Verificando status...');
+        try {
+          const r = await fetch('/api/keepalive', { cache: 'no-store' });
+          const j = await r.json().catch(() => ({}));
+          if (r.ok && j.ok) setStatus(els, 'online', 'Online');
+          else setStatus(els, 'offline', 'Indisponível');
+        } catch (e) {
+          setStatus(els, 'offline', 'Offline');
+        }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check);
+      else check();
+      // recheck every 60s
+      setInterval(check, 60000);
+    })();
+  </script>
+</body>
+</html>

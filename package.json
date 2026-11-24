@@ -1,0 +1,10 @@
+{
+  "name": "daily-medical-center",
+  "version": "1.0.0",
+  "description": "Gerenciamento de medicamentos, sintomas e relatórios de saúde",
+  "scripts": {
+    "start": "npx serve .",
+    "deploy": "vercel --prod"
+  },
+  "private": true
+}

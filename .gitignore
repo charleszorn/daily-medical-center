@@ -1,0 +1,24 @@
+# Vercel
+.vercel
+
+# Sub-projetos (repos próprios)
+site-pessoal/
+m3u-player/
+telegram-tmdb-bot/
+
+# Arquivos grandes
+*.apk
+DailyMed.apk
+assets/appstore-images.zip
+assets/extracted/
+
+# Node
+node_modules/
+npm-debug.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.log

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Limpar Cache - Daily Medical Center</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 40px 20px; background: #0b1220; color: #fff; text-align: center; }
+    .card { max-width: 480px; margin: 0 auto; background: #111a2e; border-radius: 16px; padding: 32px 24px; border: 1px solid #334155; }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    p { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 16px; }
+    .status { font-size: 13px; color: #6ee7b7; margin: 12px 0; min-height: 20px; }
+    .btn { display: inline-block; padding: 12px 24px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; margin-top: 12px; }
+    .btn:hover { background: #1d4ed8; }
+    .log { font-size: 11px; color: #64748b; text-align: left; margin-top: 16px; padding: 12px; background: #0b1220; border-radius: 8px; max-height: 200px; overflow-y: auto; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔄 Limpar Cache Completo</h1>
+    <p>Esta página limpa TODO o cache, service workers e dados locais do Daily Medical Center, forçando o download da versão mais recente.</p>
+    <div class="status" id="status">Iniciando...</div>
+    <div class="log" id="log"></div>
+    <a href="/" class="btn" id="goBtn" style="display:none">Ir para o site</a>
+  </div>
+  <script>
+    const log = (msg) => {
+      const el = document.getElementById('log');
+      el.textContent += msg + '\n';
+      el.scrollTop = el.scrollHeight;
+    };
+    const status = (msg) => { document.getElementById('status').textContent = msg; };
+
+    async function clearAll() {
+      try {
+        // 1. Unregister all service workers
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          log('Service workers encontrados: ' + regs.length);
+          for (const reg of regs) {
+            await reg.unregister();
+            log('SW desregistrado: ' + (reg.scope || 'unknown'));
+          }
+        }
+
+        // 2. Clear all caches
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          log('Caches encontrados: ' + keys.length);
+          for (const key of keys) {
+            await caches.delete(key);
+            log('Cache deletado: ' + key);
+          }
+        }
+
+        // 3. Clear ALL localStorage data keys (keep auth for login)
+        const authKey = localStorage.getItem('dmc_auth_v1');
+        const lastUserId = localStorage.getItem('dmc_last_user_id_v1');
+        const theme = localStorage.getItem('dmc_theme_v1');
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('dmc_') && key !== 'dmc_auth_v1' && key !== 'dmc_last_user_id_v1' && key !== 'dmc_theme_v1' && key !== 'dmc_code_version' && key !== 'dmc_app_version') {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(k => { localStorage.removeItem(k); log('Removido: ' + k); });
+        log('Dados locais limpos (' + keysToRemove.length + ' chaves)');
+
+        // 4. Clear version
+        localStorage.removeItem('dmc_code_version');
+        localStorage.removeItem('dmc_app_version');
+        log('Versão do cache limpa');
+
+        status('✅ Cache e dados locais limpos! Redirecionando...');
+        log('Redirecionando para o site em 2 segundos...');
+        setTimeout(() => {
+          window.location.href = '/?v=' + Date.now();
+        }, 2000);
+      } catch (e) {
+        status('❌ Erro: ' + e.message);
+        log('Erro: ' + e.message);
+        document.getElementById('goBtn').style.display = 'inline-block';
+      }
+    }
+
+    clearAll();
+  </script>
+</body>
+</html>

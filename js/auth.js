@@ -15,10 +15,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_23Sevy_7uPjmq85TxaeWPw_wBZQDCX0';
 let supabaseClient = null;
 if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // Restaura a sessão automaticamente quando ela muda (ex.: expirou, fez logout)
+  // Restaura a sessão automaticamente quando ela muda (ex.: login, logout, refresh)
   supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || !session) {
-      // só limpa se a conta atual era cloud
+    console.log('[Supabase Auth Event]', event, session ? 'com sessão' : 'sem sessão');
+    if (event === 'SIGNED_OUT') {
       try {
         const u = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
         if (u && u.mode === 'cloud') {
@@ -26,6 +26,14 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
           if (typeof showAuthOverlay === 'function') showAuthOverlay();
         }
       } catch (e) {}
+    } else if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+      const u = session.user;
+      const name = u.user_metadata?.name || u.email.split('@')[0];
+      const photo = u.user_metadata?.photo || null;
+      setCurrentUser({ id: u.id, email: u.email, name, mode: 'cloud', photo });
+      if (typeof updateUserCard === 'function') updateUserCard();
+      if (typeof hideAuthOverlay === 'function') hideAuthOverlay();
+      if (window.setupRealtimeListener) window.setupRealtimeListener(u.id);
     }
   });
 }

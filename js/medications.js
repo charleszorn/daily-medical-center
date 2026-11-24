@@ -74,31 +74,130 @@ function getMedColorSoft(color) {
   return map[color] || '#f1f5f9';
 }
 
+// Obtém timestamp numérico de adição para ordenar com precisão
+function getMedAdditionTime(med) {
+  if (med.createdAt) {
+    const t = new Date(med.createdAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (med.created_at) {
+    const t = new Date(med.created_at).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (med.id && typeof med.id === 'string' && med.id.startsWith('med_')) {
+    const parts = med.id.split('_');
+    if (parts.length >= 2) {
+      const ts = parseInt(parts[1], 10);
+      if (!isNaN(ts) && ts > 0) return ts;
+    }
+  }
+  return 0;
+}
+
+// Identificador visual da categoria e tipo de tratamento selecionados
+function renderCategoryIndicator(filterCat, count, totalCount) {
+  const container = document.getElementById('categoryIndicator');
+  if (!container) return;
+
+  if (filterCat === 'all') {
+    container.innerHTML = `
+      <div class="category-indicator__inner is-all">
+        <div class="category-indicator__left">
+          <div class="category-indicator__icon" style="background: rgba(37, 99, 235, 0.12); color: #2563eb;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          </div>
+          <div class="category-indicator__text">
+            <span class="category-indicator__label">Categoria selecionada</span>
+            <h3 class="category-indicator__title">Todas as categorias e tipos de tratamento</h3>
+          </div>
+        </div>
+        <div class="category-indicator__right">
+          <div class="category-indicator__badge">
+            <span class="category-indicator__count">${count} ${count === 1 ? 'medicamento' : 'medicamentos'}</span>
+            <span class="category-indicator__order">🕒 Ordem de adição</span>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const cat = CATEGORIES[filterCat] || CATEGORIES.other;
+    container.innerHTML = `
+      <div class="category-indicator__inner is-category" style="--cat-color: ${cat.color}; --cat-soft: ${cat.soft}; border-left-color: ${cat.color};">
+        <div class="category-indicator__left">
+          <div class="category-indicator__icon" style="background: ${cat.soft}; color: ${cat.color};">
+            ${icon(cat.icon)}
+          </div>
+          <div class="category-indicator__text">
+            <span class="category-indicator__label">Tipo de tratamento ativo</span>
+            <h3 class="category-indicator__title">${cat.label}</h3>
+          </div>
+        </div>
+        <div class="category-indicator__right">
+          <div class="category-indicator__badge" style="background: ${cat.soft}; color: ${cat.color}; border: 1px solid ${cat.color}40;">
+            <span class="category-indicator__count">${count} ${count === 1 ? 'medicamento' : 'medicamentos'}</span>
+            <span class="category-indicator__order">🕒 Ordem de adição</span>
+          </div>
+          <button class="category-indicator__clear" onclick="window.clearCategoryFilter()" title="Voltar para todas as categorias">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            Ver todas
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+window.clearCategoryFilter = () => {
+  if (window.renderMedications) {
+    window.renderMedications('all');
+  }
+};
+
 function renderMedGrid(filterCat = 'all', search = '') {
   const grid = document.getElementById('medGrid');
   const empty = document.getElementById('medEmpty');
   if (!grid) return;
-  let meds = Store.medications.all();
+
+  let allMeds = Store.medications.all();
+  // Ordena rigorosamente na ordem em que foram adicionadas (da mais antiga para a mais recente)
+  allMeds.sort((a, b) => getMedAdditionTime(a) - getMedAdditionTime(b));
+
+  let meds = allMeds;
   if (filterCat && filterCat !== 'all') meds = meds.filter(m => m.category === filterCat);
   if (search) {
     const q = search.toLowerCase();
-    meds = meds.filter(m => m.name.toLowerCase().includes(q) || (m.notes||'').toLowerCase().includes(q));
+    meds = meds.filter(m => (m.name || '').toLowerCase().includes(q) || (m.notes || '').toLowerCase().includes(q));
   }
+
+  // Atualiza identificador visual da categoria selecionada
+  renderCategoryIndicator(filterCat, meds.length, allMeds.length);
+
+  // Atualiza destaque visual dos botões de filtro no topo
+  document.querySelectorAll('#categoryFilters .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === filterCat);
+  });
+
   if (meds.length === 0) {
     grid.innerHTML = '';
     empty.hidden = false;
     return;
   }
   empty.hidden = true;
-  // Agrupa medicamentos com o mesmo nome (case-insensitive) em um único card,
-  // unindo os horários e mantendo os IDs para edição/exclusão
+
+  // Agrupa medicamentos com o mesmo nome preservando rigorosamente a ordem de cadastro
   const groups = {};
+  const groupOrder = [];
   meds.forEach(m => {
     const key = (m.name || '').trim().toLowerCase();
-    if (!groups[key]) groups[key] = [];
+    if (!groups[key]) {
+      groups[key] = [];
+      groupOrder.push(key);
+    }
     groups[key].push(m);
   });
-  const grouped = Object.values(groups).map(list => {
+
+  const grouped = groupOrder.map(key => {
+    const list = groups[key];
     const primary = list[0];
     const allTimes = [...new Set(list.flatMap(m => m.times || []))].sort();
     return { primary, list, times: allTimes };

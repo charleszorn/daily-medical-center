@@ -2,7 +2,7 @@
    app.js - Núcleo da aplicação: navegação, helpers, modais, toasts
    ============================================================ */
 
-const APP_VERSION = '2026-11-24-v3';
+const APP_VERSION = '2026-11-24-v4';
 const CATEGORIES = {
   cardiac:     { label: 'Cardíaco',           icon: 'heart',        color: '#ef4444', soft: '#fef2f2' },
   anxiety:     { label: 'Ansiedade / Depressão', icon: 'brain',     color: '#8b5cf6', soft: '#f5f3ff' },
@@ -397,9 +397,14 @@ function initApp() {
 function renderCategoryFilters() {
   const container = document.getElementById('categoryFilters');
   if (!container) return;
-  let html = `<button class="chip active" data-cat="all">Todas</button>`;
+  let html = `<button class="chip active" data-cat="all">
+    <span class="chip__dot" style="background: var(--primary);"></span>Todas
+  </button>`;
   Object.keys(CATEGORIES).forEach(k => {
-    html += `<button class="chip" data-cat="${k}">${CATEGORIES[k].label}</button>`;
+    const cat = CATEGORIES[k];
+    html += `<button class="chip" data-cat="${k}">
+      <span class="chip__dot" style="background: ${cat.color};"></span>${cat.label}
+    </button>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.chip').forEach(chip => {

@@ -141,7 +141,13 @@ async function cloudSelect(table) {
   const uid = await getAuthUserId();
   if (!sb || !uid) return null;
   try {
-    const { data, error } = await sb.from(table).select('*').eq('user_id', uid);
+    let query = sb.from(table).select('*').eq('user_id', uid);
+    if (table === 'medications' || table === 'doctors') {
+      query = query.order('created_at', { ascending: true });
+    } else if (table === 'doses' || table === 'symptoms') {
+      query = query.order('date', { ascending: true }).order('time', { ascending: true });
+    }
+    const { data, error } = await query;
     if (error) { console.error('cloud select', table, error.message || error); return null; }
     return data || [];
   } catch (e) {

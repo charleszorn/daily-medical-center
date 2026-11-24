@@ -423,13 +423,148 @@ a { color: inherit; text-decoration: none; }
 
 .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip {
-  padding: 7px 13px; border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--border);
   font-size: 13px; font-weight: 500; color: var(--text-soft);
   transition: all var(--transition); cursor: pointer;
+  user-select: none;
 }
-.chip:hover { border-color: var(--primary); color: var(--primary); }
-.chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.chip__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+.chip:hover .chip__dot {
+  transform: scale(1.25);
+}
+.chip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+}
+.chip.active .chip__dot {
+  background: #ffffff !important;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================================ Identificação de Categoria Ativa */
+.category-indicator {
+  margin: 18px 0 22px 0;
+}
+.category-indicator__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  gap: 16px;
+  flex-wrap: wrap;
+  transition: all 0.25s ease;
+}
+.category-indicator__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.category-indicator__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.category-indicator__icon svg {
+  width: 24px;
+  height: 24px;
+}
+.category-indicator__text {
+  display: flex;
+  flex-direction: column;
+}
+.category-indicator__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+.category-indicator__title {
+  margin: 2px 0 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+.category-indicator__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.category-indicator__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.category-indicator__count {
+  font-weight: 700;
+}
+.category-indicator__order {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.9;
+  padding-left: 8px;
+  border-left: 1px solid currentColor;
+}
+.category-indicator__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.category-indicator__clear svg {
+  width: 14px;
+  height: 14px;
+}
+.category-indicator__clear:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
 
 /* ============================================================ Med grid */
 .med-grid {

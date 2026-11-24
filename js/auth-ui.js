@@ -130,18 +130,25 @@ async function requireAuth() {
     toast('⚠️ Modo offline: Supabase não carregou. Verifique sua conexão e desative bloqueadores (Brave Shields).', 'error');
   }
   if (window.isCloud && window.isCloud() && window.Store && Store.syncFromCloud) {
-    console.log('requireAuth: cloud mode enabled, syncing...');
-    // 1. Push local data to cloud FIRST
-    if (window.Store.syncToCloud) {
-      try {
-        const syncResult = await Store.syncToCloud();
-        console.log('syncToCloud result:', JSON.stringify(syncResult));
-      } catch (e) { console.error('syncToCloud error', e); }
+    console.log('requireAuth: modo nuvem ativo, sincronizando a versão mais recente...');
+    // 1. Puxa primeiro os dados da nuvem (nuvem é a fonte de verdade para contas sincronizadas)
+    try {
+      await Store.syncFromCloud();
+    } catch (e) {
+      console.error('syncFromCloud error', e);
     }
-    // 2. Then pull from cloud (prefer cloud data)
-    try { await Store.syncFromCloud(); } catch (e) { console.error('syncFromCloud error', e); }
-    // Pull from cloud
-    try { await Store.syncFromCloud(); } catch (e) { console.error('syncFromCloud error', e); }
+    // 2. Envia quaisquer itens que foram criados offline localmente
+    if (window.Store.pushOfflinePending) {
+      try {
+        await Store.pushOfflinePending();
+      } catch (e) {
+        console.error('pushOfflinePending error', e);
+      }
+    }
+    // 3. Ativa listener de sincronização em tempo real (Supabase Realtime)
+    if (window.setupRealtimeListener && u.id) {
+      window.setupRealtimeListener(u.id);
+    }
     // Diagnóstico
     if (window.diagnoseSync) {
       const diag = await window.diagnoseSync();

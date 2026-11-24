@@ -2,7 +2,7 @@
    app.js - Núcleo da aplicação: navegação, helpers, modais, toasts
    ============================================================ */
 
-const APP_VERSION = '2026-11-23-v2';
+const APP_VERSION = '2026-11-24-v3';
 const CATEGORIES = {
   cardiac:     { label: 'Cardíaco',           icon: 'heart',        color: '#ef4444', soft: '#fef2f2' },
   anxiety:     { label: 'Ansiedade / Depressão', icon: 'brain',     color: '#8b5cf6', soft: '#f5f3ff' },
@@ -173,6 +173,15 @@ function switchView(name) {
   if (window.renderers && window.renderers[name]) window.renderers[name]();
 }
 
+function refreshCurrentView() {
+  const activeNav = document.querySelector('.nav__item.active');
+  const viewName = activeNav ? activeNav.dataset.view : 'dashboard';
+  if (window.renderers && window.renderers[viewName]) {
+    try { window.renderers[viewName](); } catch (e) { console.warn('refreshCurrentView error', e); }
+  }
+}
+window.refreshCurrentView = refreshCurrentView;
+
 document.querySelectorAll('.nav__item').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
@@ -287,14 +296,27 @@ function initApp() {
   // initial render
   switchView('dashboard');
 
-  // Periodic sync to cloud (every 5 minutes) to catch missed syncs
-  if (window.Store && window.Store.syncToCloud) {
-    setInterval(() => {
-      if (window.isCloud && window.isCloud()) {
-        window.Store.syncToCloud().catch(e => console.error('periodic sync error', e));
-      }
-    }, 5 * 60 * 1000);
-  }
+  // Sincronização automática em segundo plano (visibilidade, foco, reconexão e timer de 30s)
+  let lastAutoSync = 0;
+  const triggerAutoSync = () => {
+    const now = Date.now();
+    if (now - lastAutoSync < 4000) return; // evita chamadas repetidas
+    lastAutoSync = now;
+    if (window.isCloud && window.isCloud() && window.syncFromCloud) {
+      window.syncFromCloud(true);
+    }
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') triggerAutoSync();
+  });
+  window.addEventListener('focus', triggerAutoSync);
+  window.addEventListener('online', triggerAutoSync);
+
+  // Verificação periódica a cada 30 segundos
+  setInterval(() => {
+    if (document.visibilityState === 'visible') triggerAutoSync();
+  }, 30 * 1000);
 
   // reset sync button
   const resetSyncBtn = document.getElementById('resetSyncBtn');
@@ -461,7 +483,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('sw.js?v=20261123-3');
+      const reg = await navigator.serviceWorker.register('sw.js?v=20261124-1');
       // Check for updates every 30 seconds
       setInterval(() => reg.update(), 30000);
       // If a new SW is waiting, activate it and reload

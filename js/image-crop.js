@@ -3,7 +3,7 @@
    ============================================================ */
 (function () {
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-  const OUTPUT_SIZE = 256; // px
+  const OUTPUT_SIZE = 192; // px - tamanho ideal e leve para avatares (evita estouro de payload)
 
   let currentImage = null;
   let scale = 1;
@@ -180,7 +180,7 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(currentImage, sx, sy, cropSize, cropSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
     if (onSaveCallback) onSaveCallback(dataUrl);
     closeModal('cropModal');

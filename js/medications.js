@@ -153,21 +153,23 @@ function editMed(id) {
   const med = Store.medications.byId(id);
   if (med) openMedModal(med);
 }
-function deleteMed(id) {
+async function deleteMed(id) {
   if (confirm('Deseja realmente excluir este medicamento?')) {
-    Store.medications.remove(id);
-    toast('Medicamento excluído', 'success');
-    renderMedGrid(currentCat, document.getElementById('medSearch').value);
+    await Store.medications.remove(id);
+    toast('Medicamento excluído com sucesso!', 'success');
+    renderMedGrid(currentCat, document.getElementById('medSearch')?.value || '');
     updateDashboard();
   }
 }
-function deleteMedGroup(ids) {
+async function deleteMedGroup(ids) {
   if (!Array.isArray(ids) || ids.length === 0) return;
   const msg = ids.length > 1
     ? `Deseja excluir todos os ${ids.length} registros deste medicamento?`
     : 'Deseja realmente excluir este medicamento?';
   if (!confirm(msg)) return;
-  ids.forEach(id => Store.medications.remove(id));
+  for (const id of ids) {
+    await Store.medications.remove(id);
+  }
   toast(ids.length > 1 ? `${ids.length} registros excluídos` : 'Medicamento excluído', 'success');
   renderMedGrid(currentCat, document.getElementById('medSearch')?.value || '');
   updateDashboard();
@@ -333,16 +335,16 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 // Confirmação de cadastro/edição
-document.getElementById('medConfirmOk')?.addEventListener('click', () => {
+document.getElementById('medConfirmOk')?.addEventListener('click', async () => {
   if (!pendingMed) return;
   try {
     if (pendingMedId) {
-      Store.medications.update(pendingMedId, pendingMed);
-      toast('Medicamento atualizado', 'success');
+      await Store.medications.update(pendingMedId, pendingMed);
+      toast('Medicamento atualizado e salvo na nuvem!', 'success');
     } else {
-      const added = Store.medications.add(pendingMed);
+      const added = await Store.medications.add(pendingMed);
       console.log('Medication added:', added ? added.id : 'null');
-      toast('Medicamento cadastrado', 'success');
+      toast('Medicamento cadastrado e salvo na nuvem!', 'success');
     }
     hideMedConfirm();
     closeModal('medModal');
@@ -355,8 +357,6 @@ document.getElementById('medConfirmOk')?.addEventListener('click', () => {
     updateDashboard();
     renderSchedule();
     if (window.Notifications) window.Notifications.scheduleToday();
-    // Sincroniza com a nuvem imediatamente
-    if (window.Store && Store.syncToCloud) Store.syncToCloud().catch(e => console.error('syncToCloud error', e));
   } catch (err) {
     console.error('Erro ao salvar medicamento:', err);
     toast('Erro ao salvar: ' + (err.message || err), 'error');

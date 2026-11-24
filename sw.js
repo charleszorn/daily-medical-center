@@ -1,8 +1,12 @@
-const CACHE = 'dmc-v81';
+const CACHE = 'dmc-v82';
 const ASSETS = [
   '/',
   '/index.html',
   '/css/styles.css',
+  '/js/auth.js',
+  '/js/auth-ui.js',
+  '/js/theme.js',
+  '/js/notifications.js',
   '/js/storage.js',
   '/js/app.js',
   '/js/medications.js',

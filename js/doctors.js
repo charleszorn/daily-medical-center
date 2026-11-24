@@ -24,13 +24,14 @@ function editDoctor(id) {
 function openDoctorPhoto(id) {
   const doc = Store.doctors.byId(id);
   if (!doc) return;
-  // If already has photo, ask: change or remove
+  // Se já tiver foto, pergunta: alterar ou remover
   if (doc.photo) {
     const choice = confirm('Deseja remover a foto atual?\n\nOK = Remover foto\nCancelar = Alterar foto');
     if (choice) {
-      Store.doctors.update(id, { photo: null });
-      renderDoctors();
-      toast('Foto removida.', 'info');
+      Store.doctors.update(id, { photo: null }).then(() => {
+        renderDoctors();
+        toast('Foto removida e salva na nuvem!', 'info');
+      });
       return;
     }
   }
@@ -40,19 +41,19 @@ function openDoctorPhoto(id) {
   input.onchange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    openImageCropper(file, (dataUrl) => {
-      Store.doctors.update(id, { photo: dataUrl });
+    openImageCropper(file, async (dataUrl) => {
+      await Store.doctors.update(id, { photo: dataUrl });
       renderDoctors();
-      toast('Foto do médico atualizada!', 'success');
+      toast('Foto do médico atualizada e salva na nuvem!', 'success');
     });
   };
   input.click();
 }
 
-function deleteDoctor(id) {
+async function deleteDoctor(id) {
   if (confirm('Deseja realmente excluir este médico?')) {
-    Store.doctors.remove(id);
-    toast('Médico excluído', 'success');
+    await Store.doctors.remove(id);
+    toast('Médico excluído com sucesso!', 'success');
     renderDoctors();
   }
 }
@@ -88,7 +89,7 @@ function renderDoctors() {
 }
 
 // form submit
-document.getElementById('doctorForm')?.addEventListener('submit', (e) => {
+document.getElementById('doctorForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
     const id = document.getElementById('doctorId').value;
@@ -99,17 +100,15 @@ document.getElementById('doctorForm')?.addEventListener('submit', (e) => {
     };
     if (!doc.name) { toast('Informe o nome do médico', 'error'); return; }
     if (id) {
-      Store.doctors.update(id, doc);
-      toast('Médico atualizado', 'success');
+      await Store.doctors.update(id, doc);
+      toast('Médico atualizado e sincronizado na nuvem!', 'success');
     } else {
-      Store.doctors.add(doc);
-      toast('Médico cadastrado', 'success');
+      await Store.doctors.add(doc);
+      toast('Médico cadastrado e sincronizado na nuvem!', 'success');
     }
     closeModal('doctorModal');
     document.getElementById('doctorForm').reset();
     renderDoctors();
-    // Sincroniza com a nuvem imediatamente
-    if (window.Store && Store.syncToCloud) Store.syncToCloud().catch(e => console.error('syncToCloud error', e));
   } catch (err) {
     console.error('Erro ao salvar médico:', err);
     toast('Erro: ' + (err.message || err), 'error');

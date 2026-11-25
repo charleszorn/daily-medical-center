@@ -69,6 +69,54 @@ function setCurrentUser(user) {
   }
 }
 
+async function updateProfileAge(age) {
+  const u = currentUser();
+  if (!u) return;
+  u.age = age;
+  setCurrentUser(u);
+  if (isCloudEnabled() && supabaseClient) {
+    try {
+      await supabaseClient.auth.updateUser({ data: { age: age, showAge: u.showAge } });
+    } catch (e) { console.warn('age sync failed', e); }
+  }
+}
+
+async function updateProfileWeight(weight) {
+  const u = currentUser();
+  if (!u) return;
+  u.weight = weight;
+  setCurrentUser(u);
+  if (isCloudEnabled() && supabaseClient) {
+    try {
+      await supabaseClient.auth.updateUser({ data: { weight: weight, showWeight: u.showWeight } });
+    } catch (e) { console.warn('weight sync failed', e); }
+  }
+}
+
+async function updateProfileHeight(height) {
+  const u = currentUser();
+  if (!u) return;
+  u.height = height;
+  setCurrentUser(u);
+  if (isCloudEnabled() && supabaseClient) {
+    try {
+      await supabaseClient.auth.updateUser({ data: { height: height } });
+    } catch (e) { console.warn('height sync failed', e); }
+  }
+}
+
+async function updateProfileWeightGoal(goal) {
+  const u = currentUser();
+  if (!u) return;
+  u.weightGoal = goal;
+  setCurrentUser(u);
+  if (isCloudEnabled() && supabaseClient) {
+    try {
+      await supabaseClient.auth.updateUser({ data: { weightGoal: goal } });
+    } catch (e) { console.warn('weightGoal sync failed', e); }
+  }
+}
+
 async function registerLocal(email, password, name) {
   email = email.trim().toLowerCase();
   const users = loadUsers();
@@ -162,7 +210,13 @@ async function loginCloud(email, password) {
   }
   const name = data.user.user_metadata?.name || email.split('@')[0];
   const photo = data.user.user_metadata?.photo || null;
-  const session = { id: data.user.id, email: data.user.email, name, mode: 'cloud', photo };
+  const weight = data.user.user_metadata?.weight || null;
+  const height = data.user.user_metadata?.height || null;
+  const weightGoal = data.user.user_metadata?.weightGoal || null;
+  const age = data.user.user_metadata?.age || null;
+  const showWeight = data.user.user_metadata?.showWeight;
+  const showAge = data.user.user_metadata?.showAge;
+  const session = { id: data.user.id, email: data.user.email, name, mode: 'cloud', photo, weight, height, weightGoal, age, showWeight, showAge };
   setCurrentUser(session);
   return session;
 }
@@ -184,7 +238,7 @@ async function restoreCloudSession() {
     if (session?.user) {
       const u = session.user;
       const name = u.user_metadata?.name || u.email.split('@')[0];
-      setCurrentUser({ id: u.id, email: u.email, name, mode: 'cloud', photo: u.user_metadata?.photo || null });
+      setCurrentUser({ id: u.id, email: u.email, name, mode: 'cloud', photo: u.user_metadata?.photo || null, weight: u.user_metadata?.weight || null, height: u.user_metadata?.height || null, weightGoal: u.user_metadata?.weightGoal || null, age: u.user_metadata?.age || null, showWeight: u.user_metadata?.showWeight, showAge: u.user_metadata?.showAge });
       return true;
     }
   } catch (e) { console.error('restoreCloudSession error', e); }
@@ -215,7 +269,8 @@ async function updateProfilePhoto(photoDataUrl) {
 window.Auth = {
   currentUser, setCurrentUser, register, login, logout, deleteAccount,
   isCloudEnabled, isCloud: isCloudEnabled, restoreCloudSession, resendConfirmation,
-  updateProfilePhoto
+  updateProfilePhoto, updateProfileWeight, updateProfileHeight, updateProfileWeightGoal,
+  updateProfileAge
 };
 window.deleteAccount = deleteAccount;
 window.currentUser = currentUser;

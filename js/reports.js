@@ -20,7 +20,8 @@ function buildReportData(period, opts) {
   };
 
   const meds = data.medications;
-  const doses = data.doses.filter(d => inRange(d.date));
+  const medIds = new Set(meds.map(m => m.id));
+  const doses = data.doses.filter(d => inRange(d.date) && medIds.has(d.medId));
   const symptoms = data.symptoms.filter(s => inRange(s.date));
   const doctors = data.doctors || [];
 
@@ -36,44 +37,95 @@ function buildReportData(period, opts) {
   return { period, start, today, meds, doses, symptoms, symCounts, daysSet, doctors, opts };
 }
 
+function buildReportOpts() {
+  return {
+    meds: document.getElementById('incMeds')?.checked ?? true,
+    doses: document.getElementById('incDoses')?.checked ?? true,
+    symptoms: document.getElementById('incSymptoms')?.checked ?? true,
+    stats: document.getElementById('incStats')?.checked ?? true,
+    doctors: document.getElementById('incDoctors')?.checked ?? true
+  };
+}
+
+function updateReportPreview() {
+  const periodEl = document.getElementById('reportPeriod');
+  const period = periodEl ? periodEl.value : '7';
+  const opts = buildReportOpts();
+  const rd = buildReportData(period, opts);
+  const preview = document.getElementById('reportPreview');
+  if (!preview) return;
+  const u = (window.currentUser && window.currentUser()) ? window.currentUser() : null;
+  const latestWeight = (window.Store && Store.weights) ? Store.weights.latest() : null;
+  const weightVal = latestWeight ? latestWeight.weight : (u ? u.weight : null);
+
+  const vitals = [];
+  if (weightVal) vitals.push('Peso: ' + weightVal + ' kg');
+  if (u && u.age) vitals.push('Idade: ' + u.age + ' anos');
+  const vitalsStr = vitals.join(' &nbsp;|&nbsp; ');
+
+  preview.innerHTML = `
+    <div class="report-preview__header">
+      <div class="report-preview__logo">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>
+      </div>
+      <div class="report-preview__info">
+        <h3 class="report-preview__brand">Daily Medical Center</h3>
+        <p class="report-preview__subtitle">Relatório de Saúde do Paciente</p>
+        <p class="report-preview__patient"><strong>Paciente:</strong> ${u ? (window.escapeHtml ? escapeHtml(u.name) : u.name) : 'Não identificado'}${u && u.email ? ' (' + (window.escapeHtml ? escapeHtml(u.email) : u.email) + ')' : ''}</p>
+        ${vitalsStr ? `<p class="report-preview__vitals">${vitalsStr}</p>` : ''}
+        <p class="report-preview__date">Gerado em: ${new Date().toLocaleString('pt-BR')} &nbsp;|&nbsp; Período: ${period === 'all' ? 'Todo o histórico' : 'Últimos ' + period + ' dias'}</p>
+      </div>
+    </div>
+    <div class="report-preview__body">
+      <h4>Período do relatório</h4>
+      <p class="muted" style="margin-bottom:12px">${formatDate(rd.start.toISOString().slice(0,10))} a ${formatDate(todayISO())} (${period === 'all' ? 'Todo o histórico' : 'Últimos ' + period + ' dias'})</p>
+
+      ${opts.stats ? `
+        <h4>Resumo geral</h4>
+        <div class="stat-line"><span>Medicamentos cadastrados</span><strong>${rd.meds.length}</strong></div>
+        <div class="stat-line"><span>Doses registradas no período</span><strong>${rd.doses.length}</strong></div>
+        <div class="stat-line"><span>Sintomas registrados no período</span><strong>${rd.symptoms.length}</strong></div>
+        <div class="stat-line"><span>Dias monitorados no período</span><strong>${rd.daysSet.size}</strong></div>
+      ` : ''}
+
+      ${opts.meds && rd.meds.length ? `
+        <h4>Medicamentos cadastrados (${rd.meds.length})</h4>
+        <ul>${rd.meds.map(m => `<li><strong>${window.escapeHtml ? escapeHtml(m.name) : m.name}</strong> — ${m.dosage || ''} (${(CATEGORIES[m.category]||CATEGORIES.other).label})</li>`).join('')}</ul>
+      ` : ''}
+
+      ${opts.symptoms && rd.symptoms.length ? `
+        <h4>Sintomas mais frequentes</h4>
+        <ul>${Object.entries(rd.symCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`<li>${(SYMPTOMS[k]||SYMPTOMS.other).label}: <strong>${v} ocorrência(s)</strong></li>`).join('')}</ul>
+      ` : ''}
+
+      ${opts.doctors && rd.doctors.length ? `
+        <h4>Médicos responsáveis</h4>
+        <ul>${rd.doctors.map(d=>`<li><strong>${window.escapeHtml ? escapeHtml(d.name) : d.name}</strong>${d.specialty ? ' — ' + (window.escapeHtml ? escapeHtml(d.specialty) : d.specialty) : ''}</li>`).join('')}</ul>
+      ` : ''}
+
+      <p class="muted" style="margin-top:16px;font-size:12px">Clique em "Gerar relatório PDF" para baixar o arquivo completo.</p>
+    </div>
+  `;
+}
+
 function generateReport() {
   const period = document.getElementById('reportPeriod').value;
-  const opts = {
-    meds: document.getElementById('incMeds').checked,
-    doses: document.getElementById('incDoses').checked,
-    symptoms: document.getElementById('incSymptoms').checked,
-    stats: document.getElementById('incStats').checked,
-    doctors: document.getElementById('incDoctors').checked
-  };
+  const opts = buildReportOpts();
 
   const rd = buildReportData(period, opts);
 
   // Preview
-  const preview = document.getElementById('reportPreview');
-  const u = (window.currentUser && window.currentUser()) ? window.currentUser() : null;
-  preview.innerHTML = `
-    <h3>Relatório - ${period === 'all' ? 'Todo o histórico' : 'Últimos ' + period + ' dias'}</h3>
-    <p class="muted">Paciente: ${u ? u.name + ' (' + u.email + ')' : 'Não identificado'}</p>
-    <p class="muted">Período: ${formatDate(rd.start.toISOString().slice(0,10))} a ${formatDate(todayISO())}</p>
-    ${opts.stats ? `<div class="stat-line"><span>Medicamentos cadastrados</span><strong>${rd.meds.length}</strong></div>
-    <div class="stat-line"><span>Doses registradas</span><strong>${rd.doses.length}</strong></div>
-    <div class="stat-line"><span>Sintomas registrados</span><strong>${rd.symptoms.length}</strong></div>
-    <div class="stat-line"><span>Dias monitorados</span><strong>${rd.daysSet.size}</strong></div>` : ''}
-    ${opts.symptoms && rd.symptoms.length ? `<p style="margin-top:10px;font-weight:600">Sintomas mais frequentes:</p><ul>${Object.entries(rd.symCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`<li>${(SYMPTOMS[k]||SYMPTOMS.other).label}: ${v}</li>`).join('')}</ul>` : ''}
-    ${opts.doctors && rd.doctors.length ? `<p style="margin-top:10px;font-weight:600">Médicos responsáveis:</p><ul>${rd.doctors.map(d=>`<li>${d.name}${d.specialty ? ' — ' + d.specialty : ''}</li>`).join('')}</ul>` : ''}
-    <p class="muted" style="margin-top:12px">Clique em "Gerar relatório PDF" para baixar o arquivo.</p>
-  `;
+  updateReportPreview();
 
   // Generate PDF
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const W = 210, margin = 16;
-    let y = 16;
 
     // Header (gradient blue->green, with logo in translucent square)
-    const headerH = 34;
-    // gradient approximation: draw vertical strips
+    // Height: 46mm to comfortably contain all brand and patient info centered vertically
+    const headerH = 46;
     for (let i = 0; i < headerH; i++) {
       const t = i / (headerH - 1);
       const rr = Math.round(37 + (16 - 37) * t);
@@ -82,38 +134,71 @@ function generateReport() {
       doc.setFillColor(rr, gg, bb);
       doc.rect(0, i, W, 1, 'F');
     }
+
     // Logo container (translucent white rounded square)
-    const logoX = margin, logoY = 6, logoSize = 22;
+    const logoX = margin, logoSize = 26;
+    const logoY = Math.round((headerH - logoSize) / 2); // 10mm, perfectly centered vertically
     doc.setFillColor(255, 255, 255);
     doc.setGState(new doc.GState({ opacity: 0.18 }));
-    doc.roundedRect(logoX, logoY, logoSize, logoSize, 3, 3, 'F');
+    doc.roundedRect(logoX, logoY, logoSize, logoSize, 3.5, 3.5, 'F');
     doc.setGState(new doc.GState({ opacity: 1 }));
+
     // Logo (white cross +)
     doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(2.2);
-    doc.line(logoX + logoSize / 2, logoY + 5, logoX + logoSize / 2, logoY + logoSize - 5);
-    doc.line(logoX + 5, logoY + logoSize / 2, logoX + logoSize - 5, logoY + logoSize / 2);
-    // Site name + subtitle
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(19);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Daily Medical Center', logoX + logoSize + 5, 13);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Relatório de Saúde do Paciente', logoX + logoSize + 5, 19);
-    // Patient (right of logo, two lines) + date (right, last line)
-    const u = (window.currentUser && window.currentUser()) ? window.currentUser() : null;
-    const textX = logoX + logoSize + 5;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Paciente: ' + (u ? u.name : 'Não identificado'), textX, 24);
-    if (u && u.email) {
-      doc.text('E-mail: ' + u.email, textX, 28.5);
-    }
-    doc.setFontSize(8.5);
-    doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), W - margin, 28.5, { align: 'right' });
+    doc.setLineWidth(2.4);
+    doc.line(logoX + logoSize / 2, logoY + 5.5, logoX + logoSize / 2, logoY + logoSize - 5.5);
+    doc.line(logoX + 5.5, logoY + logoSize / 2, logoX + logoSize - 5.5, logoY + logoSize / 2);
 
-    y = 42;
+    // Header content: ALL aligned to the left, following the logo ("centralizada a esquerda, seguindo a logo")
+    const infoX = logoX + logoSize + 6; // 48mm
+    const u = (window.currentUser && window.currentUser()) ? window.currentUser() : null;
+    const latestWeight = (window.Store && Store.weights) ? Store.weights.latest() : null;
+    const weightVal = latestWeight ? latestWeight.weight : (u ? u.weight : null);
+
+    // 1. Site name
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(17);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Daily Medical Center', infoX, 14.5);
+
+    // 2. Subtitle
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(235, 248, 255);
+    doc.text('Relatório de Saúde do Paciente', infoX, 19.5);
+
+    // 3. Patient Name & Email
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    const pLabel = 'Paciente: ';
+    doc.text(pLabel, infoX, 26);
+    doc.setFont('helvetica', 'normal');
+    const pVal = (u ? u.name : 'Não identificado') + (u && u.email ? '  (' + u.email + ')' : '');
+    doc.text(pVal, infoX + doc.getTextWidth(pLabel), 26);
+
+    // 4. Weight & Age
+    const vitals = [];
+    if (weightVal) vitals.push('Peso: ' + weightVal + ' kg');
+    if (u && u.age) vitals.push('Idade: ' + u.age + ' anos');
+    doc.setFontSize(8.5);
+    doc.setTextColor(224, 242, 254);
+    if (vitals.length > 0) {
+      doc.text(vitals.join('   |   '), infoX, 31);
+    }
+
+    // 5. Emission Date and Period
+    doc.setFontSize(8);
+    doc.setTextColor(210, 235, 252);
+    const dateLine = 'Gerado em: ' + new Date().toLocaleString('pt-BR') + '   |   Período: ' + (period === 'all' ? 'Todo o histórico' : 'Últimos ' + period + ' dias');
+    doc.text(dateLine, infoX, vitals.length > 0 ? 36 : 31.5);
+
+    // BODY START:
+    // Header gradient ends at headerH (46mm).
+    // Start body at y = 58mm to provide a clear, generous gap of 12mm!
+    // At y = 58, 12pt font baseline places top of letters at ~54.5mm (8.5mm below header).
+    // Zero chance of invading or touching the header!
+    let y = headerH + 12; // 58mm
     doc.setTextColor(15, 23, 42);
 
     // Period
@@ -217,14 +302,38 @@ function generateReport() {
       doc.line(margin, y, W - margin, y); y += 5;
       doc.setTextColor(15, 23, 42);
       doc.setFontSize(9);
+      const maxW = W - margin * 2 - 6;
       rd.doctors.forEach(d => {
-        doc.setFont('helvetica', 'bold');
-        doc.text(d.name, margin, y); y += 4;
-        doc.setFont('helvetica', 'normal');
-        if (d.specialty) { doc.text('Especialidade: ' + d.specialty, margin + 2, y); y += 4; }
-        if (d.notes) { doc.text('Obs: ' + d.notes, margin + 2, y); y += 4; }
-        y += 2;
-        if (y > 275) { doc.addPage(); y = 16; }
+        // Build lines with text wrapping
+        const lines = [];
+        lines.push({ text: d.name, bold: true });
+        if (d.specialty) lines.push({ text: 'Especialidade: ' + d.specialty });
+        if (d.notes) lines.push({ text: 'Obs: ' + d.notes });
+        // Wrap each line
+        const wrapped = [];
+        lines.forEach(ln => {
+          const split = doc.splitTextToSize(ln.text, maxW);
+          split.forEach(s => wrapped.push({ text: s, bold: ln.bold }));
+        });
+        const lineH = 4.5;
+        const padTop = 2.5;
+        const padBottom = 3;
+        const cardH = padTop + wrapped.length * lineH + padBottom;
+        // Card background
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(margin, y, W - margin * 2, cardH, 2, 2, 'F');
+        // Colored left border (blue)
+        doc.setFillColor(37, 99, 235);
+        doc.rect(margin, y, 1.5, cardH, 'F');
+        // Text
+        let ty = y + padTop + 3;
+        wrapped.forEach(ln => {
+          doc.setFont('helvetica', ln.bold ? 'bold' : 'normal');
+          doc.text(ln.text, margin + 4, ty);
+          ty += lineH;
+        });
+        y += cardH + 4;
+        if (y > 265) { doc.addPage(); y = 16; }
       });
       y += 2;
     }
@@ -359,9 +468,22 @@ function deleteReport(id) {
 }
 window.deleteReport = deleteReport;
 
+// Auto-update preview when options change
+['reportPeriod', 'incMeds', 'incDoses', 'incSymptoms', 'incStats', 'incDoctors'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', updateReportPreview);
+});
+
+// Initial preview (delayed to ensure DOM and auth are ready)
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateReportPreview, 100);
+});
+setTimeout(updateReportPreview, 500);
+setTimeout(updateReportPreview, 1500);
+
 document.getElementById('generateReportBtn')?.addEventListener('click', generateReport);
 
-window.renderers.reports = () => renderReportList();
+window.renderers.reports = () => { renderReportList(); updateReportPreview(); };
 window.generateReport = generateReport;
 window.renderReportList = renderReportList;
 window.buildReportData = buildReportData;

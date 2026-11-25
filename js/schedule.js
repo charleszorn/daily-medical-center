@@ -251,7 +251,8 @@ function renderDashboard() {
   const uniqueMeds = new Set(meds.map(m => (m.name || '').trim().toLowerCase()));
   document.getElementById('statMeds').textContent = uniqueMeds.size;
   const today = todayISO();
-  document.getElementById('statToday').textContent = Store.doses.byDate(today).length;
+  const medIds = new Set(Store.medications.all().map(m => m.id));
+  document.getElementById('statToday').textContent = Store.doses.byDate(today).filter(d => medIds.has(d.medId)).length;
   document.getElementById('statSymptoms').textContent = Store.symptoms.all().length;
   document.getElementById('statDays').textContent = Store.monitoredDays();
 

@@ -47,6 +47,53 @@ function updateUserCard() {
   }
   document.getElementById('userName').textContent = u.name || u.email;
   document.getElementById('userStatus').textContent = u.mode === 'cloud' ? 'Conta na nuvem' : 'Conta local';
+  const showWeight = (u.showWeight !== false);
+  const showAge = (u.showAge !== false);
+
+  const weightEl = document.getElementById('userWeight');
+  const toggleWeightBtn = document.getElementById('toggleWeight');
+  if (weightEl) {
+    if (showWeight) {
+      const latest = (window.Store && Store.weights) ? Store.weights.latest() : null;
+      if (latest) {
+        weightEl.textContent = 'Peso: ' + latest.weight + ' kg';
+      } else if (u.weight) {
+        weightEl.textContent = 'Peso: ' + u.weight + ' kg';
+      } else {
+        weightEl.textContent = 'Peso: registrar';
+      }
+    } else {
+      weightEl.textContent = 'Peso: •••';
+    }
+    weightEl.style.display = '';
+  }
+  if (toggleWeightBtn) {
+    toggleWeightBtn.setAttribute('aria-checked', showWeight ? 'true' : 'false');
+    toggleWeightBtn.title = showWeight ? 'Ocultar peso' : 'Mostrar peso';
+    toggleWeightBtn.classList.toggle('user-card__toggle--off', !showWeight);
+    if (!toggleWeightBtn.querySelector('.user-card__toggle-thumb')) {
+      toggleWeightBtn.innerHTML = '<span class="user-card__toggle-thumb"></span>';
+    }
+  }
+
+  const ageEl = document.getElementById('userAge');
+  const toggleAgeBtn = document.getElementById('toggleAge');
+  if (ageEl) {
+    if (showAge) {
+      ageEl.textContent = u.age ? 'Idade: ' + u.age + ' anos' : 'Idade: registrar';
+    } else {
+      ageEl.textContent = 'Idade: •••';
+    }
+    ageEl.style.display = '';
+  }
+  if (toggleAgeBtn) {
+    toggleAgeBtn.setAttribute('aria-checked', showAge ? 'true' : 'false');
+    toggleAgeBtn.title = showAge ? 'Ocultar idade' : 'Mostrar idade';
+    toggleAgeBtn.classList.toggle('user-card__toggle--off', !showAge);
+    if (!toggleAgeBtn.querySelector('.user-card__toggle-thumb')) {
+      toggleAgeBtn.innerHTML = '<span class="user-card__toggle-thumb"></span>';
+    }
+  }
 }
 
 // Upload de foto de perfil do usuário
@@ -119,6 +166,63 @@ document.getElementById('userPhotoInput')?.addEventListener('change', (e) => {
   e.target.value = '';
 });
 
+// Abrir tela de peso
+document.getElementById('userWeight')?.addEventListener('click', () => {
+  if (window.openWeightModal) openWeightModal();
+  else if (window.switchView) switchView('weight');
+});
+
+// Toggle visibilidade do peso
+document.getElementById('toggleWeight')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const u = Auth.currentUser();
+  if (!u) return;
+  u.showWeight = (u.showWeight === false); // toggle
+  Auth.setCurrentUser(u);
+  if (window.Auth.updateProfileWeight) {
+    // reuse updateUser to save preference (store in user metadata)
+    if (window.Auth.updateProfileWeight) Auth.updateProfileWeight(u.weight).catch(()=>{});
+  }
+  updateUserCard();
+});
+
+// Toggle visibilidade da idade
+document.getElementById('toggleAge')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const u = Auth.currentUser();
+  if (!u) return;
+  u.showAge = (u.showAge === false); // toggle
+  Auth.setCurrentUser(u);
+  if (window.Auth.updateProfileAge) Auth.updateProfileAge(u.age).catch(()=>{});
+  updateUserCard();
+});
+
+// Editar idade do usuário
+document.getElementById('userAge')?.addEventListener('click', async () => {
+  const u = Auth.currentUser();
+  if (!u) return;
+  const current = u.age || '';
+  const val = prompt('Informe sua idade:', current);
+  if (val === null) return;
+  const age = val.trim();
+  if (age === '') {
+    delete u.age;
+    Auth.setCurrentUser(u);
+    if (window.Auth.updateProfileAge) await Auth.updateProfileAge(null);
+    updateUserCard();
+    toast('Idade removida.', 'info');
+    return;
+  }
+  const num = parseInt(age, 10);
+  if (isNaN(num) || num < 1 || num > 120) {
+    toast('Idade inválida (1-120).', 'error');
+    return;
+  }
+  await Auth.updateProfileAge(String(num));
+  updateUserCard();
+  toast('Idade atualizada: ' + num + ' anos', 'success');
+});
+
 async function requireAuth() {
   const u = Auth.currentUser();
   if (!u) { showAuthOverlay(); return false; }
@@ -129,6 +233,7 @@ async function requireAuth() {
     console.warn('Cloud mode DISABLED: Supabase library not loaded or not configured.');
     toast('⚠️ Modo offline: Supabase não carregou. Verifique sua conexão e desative bloqueadores (Brave Shields).', 'error');
   }
+  if (window.Store && Store.cleanupOrphanDoses) Store.cleanupOrphanDoses();
   if (window.isCloud && window.isCloud() && window.Store && Store.syncFromCloud) {
     console.log('requireAuth: modo nuvem ativo, sincronizando a versão mais recente...');
     // 1. Puxa primeiro os dados da nuvem (nuvem é a fonte de verdade para contas sincronizadas)

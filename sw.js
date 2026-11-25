@@ -1,4 +1,4 @@
-const CACHE = 'dmc-v83';
+const CACHE = 'dmc-v98';
 const ASSETS = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   '/js/app.js',
   '/js/medications.js',
   '/js/doctors.js',
+  '/js/weight.js',
   '/js/image-crop.js',
   '/js/symptoms.js',
   '/js/schedule.js',

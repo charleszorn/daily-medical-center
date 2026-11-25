@@ -64,7 +64,8 @@ const DEFAULT_DATA = {
   doses: [],
   symptoms: [],
   reports: [],
-  doctors: []
+  doctors: [],
+  weights: []
 };
 
 function isCloud() {
@@ -132,8 +133,8 @@ async function ensureSession() {
 async function getAuthUserId() {
   const session = await ensureSession();
   if (session?.user?.id) return session.user.id;
-  const u = window.currentUser && window.currentUser();
-  return u ? u.id : null;
+  // Don't fall back to local user ID - if session is invalid, return null
+  return null;
 }
 
 async function cloudSelect(table) {
@@ -342,8 +343,15 @@ async function syncFromCloud(silent = false) {
 
   const session = await ensureSession();
   if (!session) {
-    if (!silent) console.warn('syncFromCloud: no valid session');
+    if (!silent) {
+      console.warn('syncFromCloud: no valid session. User needs to re-login.');
+      if (typeof toast === 'function') toast('⚠️ Sessão expirada. Faça login novamente.', 'error');
+    }
     return { ok: false, reason: 'no session' };
+  }
+  if (session.user.id !== u.id) {
+    console.warn('syncFromCloud: user ID mismatch! local:', u.id, 'session:', session.user.id);
+    setCurrentUser({ id: session.user.id, email: session.user.email, name: u.name, mode: 'cloud', photo: u.photo });
   }
 
   try {
@@ -370,10 +378,18 @@ async function syncFromCloud(silent = false) {
         periodEnd: r.period_end || r.periodEnd || '',
         seasonMonths: r.season_months || r.seasonMonths || []
       }));
-      // Preserva apenas registros locais explicitamente marcados como criados offline
-      const cloudIds = new Set(cloudMeds.map(m => m.id));
-      const pendingOffline = (_data.medications || []).filter(m => m._isOffline && !cloudIds.has(m.id));
-      _data.medications = [...cloudMeds, ...pendingOffline];
+      // MERGE: nuvem é fonte de verdade para registros existentes, preserva locais não sincronizados
+      const cloudMap = new Map(cloudMeds.map(m => [m.id, m]));
+      const merged = (_data.medications || []).map(local => {
+        if (cloudMap.has(local.id)) {
+          const cloud = cloudMap.get(local.id);
+          return { ...cloud, _isOffline: false };
+        }
+        return local; // registro local não está na nuvem - preserva
+      });
+      const localIds = new Set((_data.medications || []).map(m => m.id));
+      const cloudOnly = cloudMeds.filter(m => !localIds.has(m.id));
+      _data.medications = [...merged, ...cloudOnly];
       updated = true;
     }
 
@@ -382,9 +398,11 @@ async function syncFromCloud(silent = false) {
         id: r.id, medId: r.med_id, date: r.date, time: r.time,
         notes: r.notes || '', takenAt: r.taken_at
       }));
-      const cloudIds = new Set(cloudDoses.map(d => d.id));
-      const pendingOffline = (_data.doses || []).filter(d => d._isOffline && !cloudIds.has(d.id));
-      _data.doses = [...cloudDoses, ...pendingOffline];
+      const cloudMap = new Map(cloudDoses.map(d => [d.id, d]));
+      const merged = (_data.doses || []).map(local => cloudMap.has(local.id) ? cloudMap.get(local.id) : local);
+      const localIds = new Set((_data.doses || []).map(d => d.id));
+      const cloudOnly = cloudDoses.filter(d => !localIds.has(d.id));
+      _data.doses = [...merged, ...cloudOnly];
       updated = true;
     }
 
@@ -393,9 +411,11 @@ async function syncFromCloud(silent = false) {
         id: r.id, type: r.type, severity: r.severity, date: r.date,
         time: r.time, notes: r.notes || '', createdAt: r.created_at
       }));
-      const cloudIds = new Set(cloudSyms.map(s => s.id));
-      const pendingOffline = (_data.symptoms || []).filter(s => s._isOffline && !cloudIds.has(s.id));
-      _data.symptoms = [...cloudSyms, ...pendingOffline];
+      const cloudMap = new Map(cloudSyms.map(s => [s.id, s]));
+      const merged = (_data.symptoms || []).map(local => cloudMap.has(local.id) ? cloudMap.get(local.id) : local);
+      const localIds = new Set((_data.symptoms || []).map(s => s.id));
+      const cloudOnly = cloudSyms.filter(s => !localIds.has(s.id));
+      _data.symptoms = [...merged, ...cloudOnly];
       updated = true;
     }
 
@@ -404,11 +424,28 @@ async function syncFromCloud(silent = false) {
         id: r.id, name: r.name, specialty: r.specialty, notes: r.notes || '', createdAt: r.created_at,
         photo: r.photo || null
       }));
-      const cloudIds = new Set(cloudDocs.map(d => d.id));
-      const pendingOffline = (_data.doctors || []).filter(d => d._isOffline && !cloudIds.has(d.id));
-      _data.doctors = [...cloudDocs, ...pendingOffline];
+      const cloudMap = new Map(cloudDocs.map(d => [d.id, d]));
+      const merged = (_data.doctors || []).map(local => cloudMap.has(local.id) ? cloudMap.get(local.id) : local);
+      const localIds = new Set((_data.doctors || []).map(d => d.id));
+      const cloudOnly = cloudDocs.filter(d => !localIds.has(d.id));
+      _data.doctors = [...merged, ...cloudOnly];
       updated = true;
     }
+    // weights (optional, may not exist in cloud yet)
+    try {
+      const ws = await cloudSelect('weights');
+      if (ws) {
+        const cloudWs = ws.map(r => ({
+          id: r.id, weight: r.weight, date: r.date, notes: r.notes || '', createdAt: r.created_at
+        }));
+        const cloudMap = new Map(cloudWs.map(w => [w.id, w]));
+        const merged = (_data.weights || []).map(local => cloudMap.has(local.id) ? cloudMap.get(local.id) : local);
+        const localIds = new Set((_data.weights || []).map(w => w.id));
+        const cloudOnly = cloudWs.filter(w => !localIds.has(w.id));
+        _data.weights = [...merged, ...cloudOnly];
+        updated = true;
+      }
+    } catch (e) { /* table may not exist */ }
 
     if (updated) {
       saveData(_data, true);
@@ -520,8 +557,50 @@ const Store = {
   get: () => _data,
   set: (d) => { _data = d; saveData(_data, true); },
   reload: () => { _data = loadData(); },
+  // Sincroniza TODOS os dados locais para a nuvem (não apenas os offline)
   syncToCloud: async () => {
-    return pushOfflinePending();
+    if (!isCloud()) return { ok: false, reason: 'cloud not enabled' };
+    const uid = await getAuthUserId();
+    if (!uid) return { ok: false, reason: 'no user' };
+    const results = { medications: 0, doses: 0, symptoms: 0, doctors: 0, errors: [] };
+    // medications
+    for (const m of (_data.medications || [])) {
+      const ok = await cloudUpsert('medications', {
+        id: m.id, name: m.name, category: m.category, dosage: m.dosage,
+        amount: m.amount, unit: m.unit, times: m.times, notes: m.notes, color: m.color,
+        frequency: m.frequency, days_of_week: m.daysOfWeek, start_date: m.startDate, day_of_month: m.dayOfMonth,
+        usage_type: m.usageType, period_start: m.periodStart, period_end: m.periodEnd, season_months: m.seasonMonths
+      });
+      if (ok) results.medications++; else results.errors.push('med:' + m.name);
+      delete m._isOffline;
+    }
+    // doses
+    for (const d of (_data.doses || [])) {
+      const ok = await cloudUpsert('doses', {
+        id: d.id, med_id: d.medId, date: d.date, time: d.time, notes: d.notes, taken_at: d.takenAt
+      });
+      if (ok) results.doses++; else results.errors.push('dose:' + d.id);
+      delete d._isOffline;
+    }
+    // symptoms
+    for (const s of (_data.symptoms || [])) {
+      const ok = await cloudUpsert('symptoms', {
+        id: s.id, type: s.type, severity: s.severity, date: s.date, time: s.time, notes: s.notes
+      });
+      if (ok) results.symptoms++; else results.errors.push('symptom:' + s.id);
+      delete s._isOffline;
+    }
+    // doctors
+    for (const doc of (_data.doctors || [])) {
+      const ok = await cloudUpsert('doctors', {
+        id: doc.id, name: doc.name, specialty: doc.specialty, notes: doc.notes, photo: doc.photo
+      });
+      if (ok) results.doctors++; else results.errors.push('doctor:' + doc.name);
+      delete doc._isOffline;
+    }
+    saveData(_data, true);
+    console.log('syncToCloud: concluído', results);
+    return { ok: results.errors.length === 0, results };
   },
   reloadForUser: () => {
     _data = loadData();
@@ -575,6 +654,18 @@ const Store = {
       if (isCloud()) {
         await cloudDelete('medications', id);
       }
+    },
+    // Remove doses órfãs (que referenciam medicamentos excluídos)
+    cleanupOrphanDoses: () => {
+      const medIds = new Set((_data.medications || []).map(m => m.id));
+      const before = (_data.doses || []).length;
+      _data.doses = (_data.doses || []).filter(d => medIds.has(d.medId));
+      const removed = before - _data.doses.length;
+      if (removed > 0) {
+        saveData(_data, true);
+        console.log('cleanupOrphanDoses: removed ' + removed + ' orphan doses');
+      }
+      return removed;
     }
   },
 
@@ -682,6 +773,47 @@ const Store = {
       if (isCloud()) {
         await cloudDelete('doctors', id);
       }
+    }
+  },
+
+  weights: {
+    all: () => _data.weights || [],
+    byId: (id) => (_data.weights || []).find(w => w.id === id),
+    latest: () => {
+      const list = (_data.weights || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+      return list.length ? list[0] : null;
+    },
+    add: async (w) => {
+      if (!_data.weights) _data.weights = [];
+      w.id = 'w_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+      w.createdAt = new Date().toISOString();
+      if (!isCloud()) w._isOffline = true;
+      _data.weights.push(w);
+      saveData(_data, true);
+      if (isCloud()) {
+        await cloudUpsert('weights', { id: w.id, weight: w.weight, date: w.date, notes: w.notes });
+      }
+      return w;
+    },
+    update: async (id, patch) => {
+      if (!_data.weights) return null;
+      const idx = _data.weights.findIndex(w => w.id === id);
+      if (idx !== -1) {
+        _data.weights[idx] = { ..._data.weights[idx], ...patch };
+        saveData(_data, true);
+        if (isCloud()) {
+          const w = _data.weights[idx];
+          await cloudUpsert('weights', { id: w.id, weight: w.weight, date: w.date, notes: w.notes });
+        }
+        return _data.weights[idx];
+      }
+      return null;
+    },
+    remove: async (id) => {
+      if (!_data.weights) return;
+      _data.weights = _data.weights.filter(w => w.id !== id);
+      saveData(_data, true);
+      if (isCloud()) await cloudDelete('weights', id);
     }
   },
 

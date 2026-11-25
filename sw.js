@@ -1,4 +1,4 @@
-const CACHE = 'dmc-v98';
+const CACHE = 'dmc-v99';
 const ASSETS = [
   '/',
   '/index.html',

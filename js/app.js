@@ -2,7 +2,7 @@
    app.js - Núcleo da aplicação: navegação, helpers, modais, toasts
    ============================================================ */
 
-const APP_VERSION = '2026-11-25-v1';
+const APP_VERSION = '2026-11-25-v2';
 const CATEGORIES = {
   cardiac:     { label: 'Cardíaco',           icon: 'heart',        color: '#ef4444', soft: '#fef2f2' },
   anxiety:     { label: 'Ansiedade / Depressão', icon: 'brain',     color: '#8b5cf6', soft: '#f5f3ff' },
@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('sw.js?v=20261125-1');
+      const reg = await navigator.serviceWorker.register('sw.js?v=20261125-2');
       // Check for updates every 30 seconds
       setInterval(() => reg.update(), 30000);
       // If a new SW is waiting, activate it and reload

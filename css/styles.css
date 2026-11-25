@@ -1178,6 +1178,9 @@ html.dark .quick-action__icon { background: #1e3a6b; color: #60a5fa; }
 /* ============================================================ Site Footer */
 .site-footer {
   padding: 32px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   color: var(--text-muted);
   font-size: 13px;
@@ -1190,40 +1193,78 @@ html.dark .quick-action__icon { background: #1e3a6b; color: #60a5fa; }
 .site-footer--app {
   grid-column: 1 / -1;
 }
+.site-footer__brand,
 .site-footer__left {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.site-footer__left svg,
+.site-footer__brand svg {
+  color: var(--primary);
   flex-shrink: 0;
 }
-.site-footer__left svg { color: var(--primary); }
-.site-footer__center {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  flex: 1; min-width: 200px; text-align: center;
-}
 .site-footer__title {
-  font-weight: 700; font-size: 16px; color: var(--text);
-  letter-spacing: -.01em; margin-bottom: 2px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: -.01em;
 }
 .site-footer__meta {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 4px 10px; font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  font-size: 12px;
 }
-.site-footer__sep { color: var(--text-muted); opacity: .5; }
+.site-footer__sep {
+  color: var(--text-muted);
+  opacity: .5;
+}
+.site-footer__note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
 .site-footer__mail {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 18px; border-radius: 999px;
-  background: var(--primary-soft); color: var(--primary-dark);
-  font-weight: 600; font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-weight: 600;
+  font-size: 13px;
   border: 1px solid var(--primary);
   transition: background var(--transition), color var(--transition), transform var(--transition);
 }
-.site-footer__mail:hover { background: var(--primary); color: #fff; transform: translateY(-1px); }
-.site-footer__mail svg { flex-shrink: 0; }
-.site-footer__note { margin: 8px 0 0; font-size: 11.5px; color: var(--text-muted); }
+.site-footer__mail:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.site-footer__mail svg {
+  flex-shrink: 0;
+}
 .site-footer__status {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px; padding: 5px 12px; border-radius: 999px;
-  background: var(--bg-muted); border: 1px solid var(--border);
-  font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  margin-bottom: 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
   transition: all var(--transition);
 }
 .site-footer__status-dot {
@@ -1261,7 +1302,9 @@ html.dark .quick-action__icon { background: #1e3a6b; color: #60a5fa; }
   border-top: 1px solid rgba(255,255,255,.12);
   color: rgba(255,255,255,.72);
 }
+.site-footer--hero .site-footer__brand,
 .site-footer--hero .site-footer__left { color: #fff; }
+.site-footer--hero .site-footer__brand svg,
 .site-footer--hero .site-footer__left svg { color: #fff; }
 .site-footer--hero .site-footer__title { color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
 .site-footer--hero .site-footer__meta { text-shadow: 0 1px 8px rgba(0,0,0,.6); }
@@ -1282,7 +1325,8 @@ html.dark .auth-overlay .site-footer { background: transparent; border-color: rg
   .site-footer { padding: 24px 16px 20px; font-size: 12.5px; }
   .site-footer__meta { flex-direction: column; gap: 2px; }
   .site-footer__sep { display: none; }
-  .site-footer__mail { padding: 8px 14px; font-size: 12.5px; }
+  .site-footer__mail { padding: 8px 16px; font-size: 12.5px; margin-top: 8px; }
+  .site-footer__status { margin-top: 14px; }
 }
 
 /* ============================================================ Hero / Auth */

@@ -809,9 +809,45 @@
       </div>
       <form class="form" id="medForm">
         <input type="hidden" id="medId" />
-        <div class="form__group">
-          <label for="medName">Nome do medicamento</label>
-          <input type="text" id="medName" placeholder="Ex: Losartana" required />
+        <!-- Campos ocultos de vinculação com a base oficial Anvisa -->
+        <input type="hidden" id="medAnvisaId" />
+        <input type="hidden" id="medAnvisaReg" />
+        <input type="hidden" id="medAnvisaLab" />
+        <input type="hidden" id="medAnvisaProcess" />
+        <input type="hidden" id="medAnvisaUrl" />
+
+        <div class="form__group form__group--anvisa">
+          <div class="anvisa-label-wrapper">
+            <label for="medName">Nome do medicamento</label>
+            <span class="anvisa-gov-badge" title="Integrado à base oficial de medicamentos e bulas da Anvisa (GOV.BR)">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+              Anvisa (GOV.BR)
+            </span>
+          </div>
+          <div class="anvisa-search-container">
+            <input type="text" id="medName" placeholder="Digite para buscar na Anvisa... (Ex: Losartana, Dipirona)" required autocomplete="off" />
+            <div id="anvisaLoading" class="anvisa-spinner" hidden></div>
+          </div>
+          <div id="anvisaDropdown" class="anvisa-dropdown" hidden></div>
+
+          <!-- Bloco informativo quando vinculado à base da Anvisa -->
+          <div id="anvisaLinkedInfo" class="anvisa-linked-info" hidden>
+            <div class="anvisa-linked-info__icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="anvisa-linked-info__content">
+              <div class="anvisa-linked-info__title">Medicamento verificado na base Anvisa</div>
+              <div class="anvisa-linked-info__meta">
+                <span id="anvisaLinkedReg"></span>
+                <span id="anvisaLinkedLab"></span>
+              </div>
+            </div>
+            <button type="button" class="anvisa-linked-info__remove" id="anvisaClearLink" title="Remover vínculo com Anvisa">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <small class="form__hint" id="anvisaHint">💡 Digite ao menos 3 caracteres para sugestões automáticas da Anvisa.</small>
         </div>
         <div class="form__row">
           <div class="form__group">

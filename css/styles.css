@@ -1570,3 +1570,124 @@ html.dark .hero .auth-card {
 .theme-toggle button:hover { background: var(--border); color: var(--text); }
 .theme-toggle button.active { background: var(--primary); color: #fff; }
 .theme-toggle svg { width: 14px; height: 14px; }
+
+/* ============================================================ Integração Anvisa GOV.BR */
+.form__group--anvisa { position: relative; }
+.anvisa-label-wrapper {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+}
+.anvisa-gov-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe;
+  padding: 2px 8px; border-radius: 999px; letter-spacing: 0.02em;
+}
+html.dark .anvisa-gov-badge {
+  background: rgba(14, 165, 233, 0.18); color: #38bdf8;
+}
+.anvisa-search-container { position: relative; width: 100%; }
+.anvisa-spinner {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; border: 2px solid #cbd5e1;
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: anvisaSpin 0.6s linear infinite; pointer-events: none;
+}
+@keyframes anvisaSpin { to { transform: translateY(-50%) rotate(360deg); } }
+
+.anvisa-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  max-height: 250px; overflow-y: auto; margin-top: 4px;
+}
+.anvisa-dropdown__header {
+  padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--text-muted);
+  background: var(--bg-muted); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.anvisa-item {
+  padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border-soft);
+  transition: background var(--transition); text-align: left;
+}
+.anvisa-item:last-child { border-bottom: none; }
+.anvisa-item:hover, .anvisa-item.active {
+  background: var(--bg-muted);
+}
+.anvisa-item__name {
+  font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 2px;
+}
+.anvisa-item__meta {
+  font-size: 11.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.anvisa-item__reg {
+  color: var(--primary); font-weight: 600;
+}
+.anvisa-item__bula-tag {
+  background: #ecfdf5; color: #059669; font-size: 10.5px; font-weight: 600;
+  padding: 1px 6px; border-radius: 4px;
+}
+html.dark .anvisa-item__bula-tag {
+  background: rgba(16, 185, 129, 0.2); color: #34d399;
+}
+.anvisa-item__empty {
+  padding: 14px 12px; font-size: 13px; color: var(--text-muted); text-align: center;
+}
+
+.anvisa-linked-info {
+  margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-md);
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  display: flex; align-items: center; gap: 10px;
+}
+html.dark .anvisa-linked-info {
+  background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25);
+}
+.anvisa-linked-info__icon {
+  color: #16a34a; flex-shrink: 0; display: flex; align-items: center;
+}
+html.dark .anvisa-linked-info__icon { color: #4ade80; }
+.anvisa-linked-info__content { flex: 1; min-width: 0; }
+.anvisa-linked-info__title {
+  font-size: 12px; font-weight: 700; color: #15803d; margin-bottom: 2px;
+}
+html.dark .anvisa-linked-info__title { color: #86efac; }
+.anvisa-linked-info__meta {
+  font-size: 11.5px; color: #166534; display: flex; flex-wrap: wrap; gap: 6px;
+}
+html.dark .anvisa-linked-info__meta { color: #bbf7d0; }
+.anvisa-linked-info__remove {
+  background: none; border: none; cursor: pointer; color: #15803d;
+  width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.anvisa-linked-info__remove:hover {
+  background: rgba(22, 101, 52, 0.12);
+}
+
+/* Medication Card Anvisa Elements */
+.med-card__anvisa {
+  margin: 6px 0 10px; display: flex; flex-direction: column; gap: 3px;
+}
+.anvisa-pill {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px;
+  font-weight: 700; color: #0369a1; background: #e0f2fe;
+  padding: 2px 8px; border-radius: 6px; width: fit-content;
+}
+html.dark .anvisa-pill {
+  background: rgba(14, 165, 233, 0.2); color: #38bdf8;
+}
+.anvisa-lab {
+  font-size: 11px; color: var(--text-muted); font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.med-card__bula-row {
+  margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-soft);
+}
+.anvisa-bula-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 700; color: var(--primary);
+  background: var(--primary-soft); padding: 5px 10px; border-radius: var(--radius-sm);
+  text-decoration: none; transition: all var(--transition);
+}
+.anvisa-bula-btn:hover {
+  background: var(--primary); color: #fff;
+}
+

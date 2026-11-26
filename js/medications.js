@@ -50,6 +50,35 @@ function openMedModal(med = null) {
     document.querySelectorAll('.color-swatch').forEach(s => {
       s.classList.toggle('active', s.dataset.color === color);
     });
+
+    // Campos vinculados da Anvisa
+    const medAnvisaId = document.getElementById('medAnvisaId');
+    if (medAnvisaId) medAnvisaId.value = med ? (med.anvisaId || '') : '';
+    const medAnvisaReg = document.getElementById('medAnvisaReg');
+    if (medAnvisaReg) medAnvisaReg.value = med ? (med.anvisaReg || '') : '';
+    const medAnvisaLab = document.getElementById('medAnvisaLab');
+    if (medAnvisaLab) medAnvisaLab.value = med ? (med.anvisaLab || '') : '';
+    const medAnvisaProcess = document.getElementById('medAnvisaProcess');
+    if (medAnvisaProcess) medAnvisaProcess.value = med ? (med.anvisaProcess || '') : '';
+    const medAnvisaUrl = document.getElementById('medAnvisaUrl');
+    if (medAnvisaUrl) medAnvisaUrl.value = med ? (med.anvisaUrl || '') : '';
+
+    const linkedInfo = document.getElementById('anvisaLinkedInfo');
+    const linkedReg = document.getElementById('anvisaLinkedReg');
+    const linkedLab = document.getElementById('anvisaLinkedLab');
+    if (linkedInfo) {
+      if (med && med.anvisaReg) {
+        if (linkedReg) linkedReg.textContent = `Reg. Anvisa: ${med.anvisaReg}`;
+        if (linkedLab) linkedLab.textContent = med.anvisaLab ? ` · ${med.anvisaLab}` : '';
+        linkedInfo.hidden = false;
+      } else {
+        linkedInfo.hidden = true;
+      }
+    }
+    const anvisaDrop = document.getElementById('anvisaDropdown');
+    if (anvisaDrop) { anvisaDrop.innerHTML = ''; anvisaDrop.hidden = true; }
+    const anvisaSpin = document.getElementById('anvisaLoading');
+    if (anvisaSpin) anvisaSpin.hidden = true;
     // reset confirm view
     if (typeof hideMedConfirm === 'function') hideMedConfirm();
     const form = document.getElementById('medForm');
@@ -227,6 +256,15 @@ function renderMedGrid(filterCat = 'all', search = '') {
         </div>
         <div class="med-card__name">${escapeHtml(m.name)}${groupedBadge}</div>
         <div class="med-card__category">${cat.label}${m.frequency && m.frequency !== 'daily' ? ' · ' + ({weekly:'Semanal',biweekly:'Quinzenal',monthly:'Mensal'}[m.frequency] || '') : ''}${m.usageType && m.usageType !== 'continuous' ? ' · ' + ({period:'Por período',seasonal:'Sazonal',asNeeded:'Sob demanda'}[m.usageType] || '') : ''}</div>
+        ${m.anvisaReg ? `
+          <div class="med-card__anvisa">
+            <span class="anvisa-pill" title="Registro oficial na Anvisa">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Reg. Anvisa: ${escapeHtml(m.anvisaReg)}
+            </span>
+            ${m.anvisaLab ? `<span class="anvisa-lab" title="Laboratório / Fabricante">${escapeHtml(m.anvisaLab)}</span>` : ''}
+          </div>
+        ` : ''}
         <div class="med-card__details">
           <div class="med-card__detail">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M5 7h14"/></svg>
@@ -243,6 +281,15 @@ function renderMedGrid(filterCat = 'all', search = '') {
           <div class="med-card__times">${times || '<span class="med-card__time">—</span>'}</div>
         </div>
         ${m.notes ? `<div class="med-card__notes">"${escapeHtml(m.notes)}"</div>` : ''}
+        ${m.anvisaUrl ? `
+          <div class="med-card__bula-row">
+            <a href="${escapeHtml(m.anvisaUrl)}" target="_blank" rel="noopener noreferrer" class="anvisa-bula-btn" title="Consultar bula e dados oficiais no portal da Anvisa">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Bula Oficial (Anvisa)
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
+        ` : ''}
       </div>
     `;
   }).join('');
@@ -344,6 +391,7 @@ function showMedConfirm(med, id) {
   }
   details.innerHTML = `
     <div class="med-confirm__row"><strong>Nome:</strong> ${escapeHtml(med.name)}</div>
+    ${med.anvisaReg ? `<div class="med-confirm__row"><strong>Anvisa (GOV.BR):</strong> <span class="anvisa-pill" style="vertical-align:middle">Reg. ${escapeHtml(med.anvisaReg)}</span>${med.anvisaLab ? ` · ${escapeHtml(med.anvisaLab)}` : ''}</div>` : ''}
     <div class="med-confirm__row"><strong>Categoria:</strong> ${cat.label}</div>
     <div class="med-confirm__row"><strong>Dosagem:</strong> ${escapeHtml(med.dosage)}</div>
     <div class="med-confirm__row"><strong>Quantidade:</strong> ${escapeHtml(med.amount)} ${med.unit} por dose</div>
@@ -397,6 +445,12 @@ document.getElementById('medForm')?.addEventListener('submit', (e) => {
     const unitEl = document.getElementById('medUnit');
     const notesEl = document.getElementById('medNotes');
     const colorEl = document.getElementById('medColor');
+    const anvisaIdEl = document.getElementById('medAnvisaId');
+    const anvisaRegEl = document.getElementById('medAnvisaReg');
+    const anvisaLabEl = document.getElementById('medAnvisaLab');
+    const anvisaProcessEl = document.getElementById('medAnvisaProcess');
+    const anvisaUrlEl = document.getElementById('medAnvisaUrl');
+
     const med = {
       name: (nameEl ? nameEl.value : '').trim() || 'Medicamento',
       category: catEl ? catEl.value : 'other',
@@ -413,7 +467,12 @@ document.getElementById('medForm')?.addEventListener('submit', (e) => {
       periodEnd: periodEnd,
       seasonMonths: seasonMonths,
       notes: (notesEl ? notesEl.value : '').trim(),
-      color: (colorEl ? colorEl.value : '#2563eb')
+      color: (colorEl ? colorEl.value : '#2563eb'),
+      anvisaId: (anvisaIdEl ? anvisaIdEl.value : '').trim() || null,
+      anvisaReg: (anvisaRegEl ? anvisaRegEl.value : '').trim() || null,
+      anvisaLab: (anvisaLabEl ? anvisaLabEl.value : '').trim() || null,
+      anvisaProcess: (anvisaProcessEl ? anvisaProcessEl.value : '').trim() || null,
+      anvisaUrl: (anvisaUrlEl ? anvisaUrlEl.value : '').trim() || null
     };
     showMedConfirm(med, id);
   } catch (err) {
@@ -475,6 +534,231 @@ openMedModal = function(med) {
 };
 
 window.escapeHtml = escapeHtml;
+
+// ============================================================
+// Integração Oficial Anvisa GOV.BR: Autocomplete & Bula
+// ============================================================
+let anvisaDebounceTimer = null;
+let currentAnvisaResults = [];
+
+function initAnvisaAutocomplete() {
+  const nameInput = document.getElementById('medName');
+  const dropdown = document.getElementById('anvisaDropdown');
+  const spinner = document.getElementById('anvisaLoading');
+  const clearBtn = document.getElementById('anvisaClearLink');
+
+  if (!nameInput || !dropdown) return;
+
+  nameInput.addEventListener('input', () => {
+    const val = (nameInput.value || '').trim();
+    if (anvisaDebounceTimer) clearTimeout(anvisaDebounceTimer);
+
+    if (val.length < 3) {
+      dropdown.innerHTML = '';
+      dropdown.hidden = true;
+      if (spinner) spinner.hidden = true;
+      return;
+    }
+
+    if (spinner) spinner.hidden = false;
+    anvisaDebounceTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/anvisa?q=${encodeURIComponent(val)}&count=8`);
+        if (!res.ok) throw new Error('Falha na consulta');
+        const data = await res.json();
+        currentAnvisaResults = data.results || [];
+        renderAnvisaDropdown(currentAnvisaResults, val);
+      } catch (err) {
+        console.warn('[Anvisa search warning]:', err);
+        dropdown.innerHTML = `
+          <div class="anvisa-item__empty">
+            Não foi possível carregar sugestões da Anvisa no momento.
+          </div>
+        `;
+        dropdown.hidden = false;
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
+    }, 320);
+  });
+
+  // Fecha dropdown ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target) && e.target !== nameInput) {
+      dropdown.hidden = true;
+    }
+  });
+
+  // Botão para limpar vínculo com a Anvisa
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      clearAnvisaLink();
+    });
+  }
+}
+
+function clearAnvisaLink() {
+  const anvisaId = document.getElementById('medAnvisaId');
+  if (anvisaId) anvisaId.value = '';
+  const anvisaReg = document.getElementById('medAnvisaReg');
+  if (anvisaReg) anvisaReg.value = '';
+  const anvisaLab = document.getElementById('medAnvisaLab');
+  if (anvisaLab) anvisaLab.value = '';
+  const anvisaProcess = document.getElementById('medAnvisaProcess');
+  if (anvisaProcess) anvisaProcess.value = '';
+  const anvisaUrl = document.getElementById('medAnvisaUrl');
+  if (anvisaUrl) anvisaUrl.value = '';
+
+  const info = document.getElementById('anvisaLinkedInfo');
+  if (info) info.hidden = true;
+}
+
+function renderAnvisaDropdown(items, query) {
+  const dropdown = document.getElementById('anvisaDropdown');
+  if (!dropdown) return;
+
+  if (!items || items.length === 0) {
+    dropdown.innerHTML = `
+      <div class="anvisa-item__empty">
+        Nenhum medicamento encontrado na Anvisa para "<strong>${escapeHtml(query)}</strong>".
+        <br><small style="color:var(--text-muted)">Você ainda pode salvar com o nome digitado livremente.</small>
+      </div>
+    `;
+    dropdown.hidden = false;
+    return;
+  }
+
+  const itemsHtml = items.map((item, idx) => {
+    const title = capitalizeWords(item.nomeProduto);
+    const lab = item.razaoSocial || 'Laboratório não informado';
+    const reg = item.numeroRegistroFormatado || item.numeroRegistro;
+    const bulaTag = item.temBulaPaciente
+      ? `<span class="anvisa-item__bula-tag">📄 Bula disponível</span>`
+      : '';
+
+    return `
+      <div class="anvisa-item" data-idx="${idx}">
+        <div class="anvisa-item__name">${escapeHtml(title)}</div>
+        <div class="anvisa-item__meta">
+          <span class="anvisa-item__reg">Reg. Anvisa: ${escapeHtml(reg)}</span>
+          <span>· ${escapeHtml(lab)}</span>
+          ${bulaTag}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  dropdown.innerHTML = `
+    <div class="anvisa-dropdown__header">
+      <span>BASE OFICIAL ANVISA (${items.length})</span>
+      <span style="font-weight:normal;font-size:10.5px">Clique para selecionar</span>
+    </div>
+    ${itemsHtml}
+  `;
+  dropdown.hidden = false;
+
+  dropdown.querySelectorAll('.anvisa-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (!isNaN(idx) && items[idx]) {
+        selectAnvisaItem(items[idx]);
+      }
+    });
+  });
+}
+
+function selectAnvisaItem(item) {
+  const nameInput = document.getElementById('medName');
+  if (nameInput) {
+    nameInput.value = capitalizeWords(item.nomeProduto);
+  }
+
+  // Preenche dados ocultos da Anvisa
+  const idEl = document.getElementById('medAnvisaId');
+  if (idEl) idEl.value = item.idProduto || '';
+  const regEl = document.getElementById('medAnvisaReg');
+  if (regEl) regEl.value = item.numeroRegistroFormatado || item.numeroRegistro || '';
+  const labEl = document.getElementById('medAnvisaLab');
+  if (labEl) labEl.value = item.razaoSocial || '';
+  const procEl = document.getElementById('medAnvisaProcess');
+  if (procEl) procEl.value = item.numProcesso || '';
+  const urlEl = document.getElementById('medAnvisaUrl');
+  if (urlEl) urlEl.value = item.anvisaUrl || '';
+
+  // Exibe bloco informativo de vínculo
+  const info = document.getElementById('anvisaLinkedInfo');
+  const regTxt = document.getElementById('anvisaLinkedReg');
+  const labTxt = document.getElementById('anvisaLinkedLab');
+  if (info) {
+    if (regTxt) regTxt.textContent = `Reg. Anvisa: ${item.numeroRegistroFormatado || item.numeroRegistro}`;
+    if (labTxt) labTxt.textContent = item.razaoSocial ? ` · ${item.razaoSocial}` : '';
+    info.hidden = false;
+  }
+
+  // Autodetecção inteligente de dosagem
+  const raw = item.nomeProduto || '';
+  const dosageMatch = raw.match(/\b(\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml|ui|%))\b/i);
+  if (dosageMatch) {
+    const dosageInput = document.getElementById('medDosage');
+    if (dosageInput && (!dosageInput.value || dosageInput.value === '—')) {
+      dosageInput.value = dosageMatch[1].toLowerCase().replace(/\s+/g, '');
+    }
+  }
+
+  // Autodetecção inteligente de unidade
+  const unitSelect = document.getElementById('medUnit');
+  if (unitSelect) {
+    const lower = raw.toLowerCase();
+    if (lower.includes('gota') || lower.includes('solução oral') || lower.includes('suspensão oral')) {
+      unitSelect.value = lower.includes('gota') ? 'gota' : 'ml';
+    } else if (lower.includes('cápsula')) {
+      unitSelect.value = 'cápsula';
+    } else if (lower.includes('injetável') || lower.includes('ampola')) {
+      unitSelect.value = 'injetável';
+    } else if (lower.includes('comprimido') || lower.includes('dragea') || lower.includes('drágea')) {
+      unitSelect.value = 'comprimido';
+    }
+  }
+
+  // Autodetecção inteligente de categoria
+  const catSelect = document.getElementById('medCategory');
+  if (catSelect) {
+    const lower = raw.toLowerCase();
+    if (/losartana|atenolol|enalapril|anlodipino|hidroclorotiazida|propranolol|captopril|carvedilol|valsartana/i.test(lower)) {
+      catSelect.value = 'cardiac';
+    } else if (/sinvastatina|atorvastatina|rosuvastatina/i.test(lower)) {
+      catSelect.value = 'cholesterol';
+    } else if (/fluoxetina|sertralina|escitalopram|clonazepam|diazepam|alprazolam|paroxetina|quetiapina|duloxetina|venlafaxina/i.test(lower)) {
+      catSelect.value = 'anxiety';
+    } else if (/metformina|glibenclamida|gliclazida|insulina|dapagliflozina|empagliflozina/i.test(lower)) {
+      catSelect.value = 'diabetes';
+    } else if (/levotiroxina|puran|synthroid/i.test(lower)) {
+      catSelect.value = 'thyroid';
+    } else if (/vitamina|ácido fólico|polivitamínico|calcio|colágeno/i.test(lower)) {
+      catSelect.value = 'vitamin';
+    } else if (/ozempic|wegovy|saxenda|mounjaro|sibutramina/i.test(lower)) {
+      catSelect.value = 'weight';
+    }
+  }
+
+  // Fecha dropdown
+  const dropdown = document.getElementById('anvisaDropdown');
+  if (dropdown) {
+    dropdown.innerHTML = '';
+    dropdown.hidden = true;
+  }
+}
+
+function capitalizeWords(str) {
+  if (!str) return '';
+  return str.toLowerCase().replace(/(?:^|\s|\/|-)\S/g, c => c.toUpperCase());
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAnvisaAutocomplete);
+} else {
+  initAnvisaAutocomplete();
+}
 
 window.renderers.medications = () => renderMedGrid(currentCat, document.getElementById('medSearch')?.value || '');
 window.openMedModal = openMedModal;

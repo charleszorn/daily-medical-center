@@ -2,7 +2,7 @@
    app.js - Núcleo da aplicação: navegação, helpers, modais, toasts
    ============================================================ */
 
-const APP_VERSION = '2026-11-25-v2';
+const APP_VERSION = '2026-11-25-v3';
 const CATEGORIES = {
   cardiac:     { label: 'Cardíaco',           icon: 'heart',        color: '#ef4444', soft: '#fef2f2' },
   anxiety:     { label: 'Ansiedade / Depressão', icon: 'brain',     color: '#8b5cf6', soft: '#f5f3ff' },
